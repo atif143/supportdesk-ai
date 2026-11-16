@@ -1,0 +1,11 @@
+# Libraries downloaded by npm (anyone can get them again with "npm install")
+node_modules/
+
+# Built code (made again with "npm run build")
+dist/
+
+# Our secret settings. Only .env.example goes into Git.
+.env
+
+# Log files
+*.log
