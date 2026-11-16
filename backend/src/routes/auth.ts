@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { env } from '../config';
 import { User } from '../models/user';
 
 export const authRouter = Router();
@@ -39,5 +41,41 @@ authRouter.post('/register', async (req, res) => {
     name: user.get('name'),
     email: user.get('email'),
     role: user.get('role'),
+  });
+});
+
+// POST /api/auth/login  -> check email + password, give back a login token
+authRouter.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  // 1. Check the data the user sent
+  if (!email || !password) {
+    res.status(400).json({ error: 'Email and password are required' });
+    return;
+  }
+
+  // 2. Find the user and compare the password with the saved hash
+  const user = await User.findOne({ where: { email } });
+  const passwordIsCorrect = user && (await bcrypt.compare(password, user.get('passwordHash') as string));
+
+  if (!user || !passwordIsCorrect) {
+    res.status(401).json({ error: 'Email or password is wrong' });
+    return;
+  }
+
+  // 3. Make a login token that is valid for 15 minutes
+  const token = jwt.sign({ userId: user.get('id'), role: user.get('role') }, env.JWT_SECRET, {
+    expiresIn: '15m',
+  });
+
+  // 4. Send back the token and the user
+  res.json({
+    token,
+    user: {
+      id: user.get('id'),
+      name: user.get('name'),
+      email: user.get('email'),
+      role: user.get('role'),
+    },
   });
 });
