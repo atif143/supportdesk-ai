@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config';
+import { requireLogin } from '../middleware/requireLogin';
 import { User } from '../models/user';
 
 export const authRouter = Router();
@@ -78,4 +79,12 @@ authRouter.post('/login', async (req, res) => {
       role: user.get('role'),
     },
   });
+});
+
+// GET /api/auth/me  -> who is logged in? (only works with a valid token)
+authRouter.get('/me', requireLogin, async (req, res) => {
+  const user = await User.findByPk(res.locals.user.userId, {
+    attributes: ['id', 'name', 'email', 'role'],
+  });
+  res.json(user);
 });
