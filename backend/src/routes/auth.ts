@@ -1,48 +1,11 @@
-import { Response, Router } from 'express';
+import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
-import { env } from '../config';
 import { requireLogin } from '../middleware/requireLogin';
 import { RefreshToken } from '../models/refreshToken';
 import { User } from '../models/user';
+import { hashToken, makeLoginToken, makeRefreshToken } from '../utils/tokens';
 
 export const authRouter = Router();
-
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000; // in milliseconds
-
-// ---------- Helper functions ----------
-
-// Login token: valid for 15 minutes
-function makeLoginToken(userId: string, role: string) {
-  return jwt.sign({ userId, role }, env.JWT_SECRET, { expiresIn: '15m' });
-}
-
-// Turns a refresh token into a hash, so we never save the real token
-function hashToken(token: string) {
-  return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-// Refresh token: valid for 7 days. Saved in the database (as a hash) and in a cookie.
-async function makeRefreshToken(res: Response, userId: string) {
-  const refreshToken = crypto.randomBytes(40).toString('hex');
-
-  await RefreshToken.create({
-    userId: userId,
-    tokenHash: hashToken(refreshToken),
-    expiresAt: new Date(Date.now() + SEVEN_DAYS),
-  });
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true, // browser JavaScript cannot read it
-    secure: true, // only sent over https (and localhost)
-    sameSite: 'strict', // not sent from other websites
-    path: '/api/auth', // only sent to /api/auth routes
-    maxAge: SEVEN_DAYS,
-  });
-}
-
-// ---------- Routes ----------
 
 // POST /api/auth/register  -> create a new customer account
 authRouter.post('/register', async (req, res) => {
@@ -68,14 +31,9 @@ authRouter.post('/register', async (req, res) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, email, passwordHash });
+  const user = (await User.create({ name, email, passwordHash })).toJSON();
 
-  res.status(201).json({
-    id: user.get('id'),
-    name: user.get('name'),
-    email: user.get('email'),
-    role: user.get('role'),
-  });
+  res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role });
 });
 
 // POST /api/auth/login  -> check email + password, give back tokens
@@ -87,38 +45,29 @@ authRouter.post('/login', async (req, res) => {
     return;
   }
 
-  const user = await User.findOne({ where: { email } });
+  const user = (await User.findOne({ where: { email } }))?.toJSON();
   if (!user) {
     res.status(401).json({ error: 'Email or password is wrong' });
     return;
   }
 
-  const passwordIsCorrect = await bcrypt.compare(password, user.get('passwordHash') as string);
+  const passwordIsCorrect = await bcrypt.compare(password, user.passwordHash);
   if (!passwordIsCorrect) {
     res.status(401).json({ error: 'Email or password is wrong' });
     return;
   }
 
-  const userId = user.get('id') as string;
-  const role = user.get('role') as string;
-
-  await makeRefreshToken(res, userId);
+  await makeRefreshToken(res, user.id);
 
   res.json({
-    token: makeLoginToken(userId, role),
-    user: {
-      id: userId,
-      name: user.get('name'),
-      email: user.get('email'),
-      role: role,
-    },
+    token: makeLoginToken(user.id, user.role),
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
   });
 });
 
 // POST /api/auth/refresh  -> use the refresh token (cookie) to get new tokens
 authRouter.post('/refresh', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-
   if (!refreshToken) {
     res.status(401).json({ error: 'Please log in again' });
     return;
@@ -130,8 +79,8 @@ authRouter.post('/refresh', async (req, res) => {
     return;
   }
 
-  const isExpired = (savedToken.get('expiresAt') as Date) < new Date();
-  if (isExpired) {
+  const tokenData = savedToken.toJSON();
+  if (tokenData.expiresAt < new Date()) {
     res.status(401).json({ error: 'Please log in again' });
     return;
   }
@@ -139,21 +88,18 @@ authRouter.post('/refresh', async (req, res) => {
   // Delete the old refresh token, so it can only be used once
   await savedToken.destroy();
 
-  const user = await User.findByPk(savedToken.get('userId') as string);
+  const user = (await User.findByPk(tokenData.userId))?.toJSON();
   if (!user) {
     res.status(401).json({ error: 'Please log in again' });
     return;
   }
 
-  const userId = user.get('id') as string;
-  const role = user.get('role') as string;
+  await makeRefreshToken(res, user.id);
 
-  await makeRefreshToken(res, userId);
-
-  res.json({ token: makeLoginToken(userId, role) });
+  res.json({ token: makeLoginToken(user.id, user.role) });
 });
 
-// GET /api/auth/me  -> who is logged in? (only works with a valid login token)
+// GET /api/auth/me  -> who is logged in?
 authRouter.get('/me', requireLogin, async (req, res) => {
   const user = await User.findByPk(res.locals.user.userId, {
     attributes: ['id', 'name', 'email', 'role'],
