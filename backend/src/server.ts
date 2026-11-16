@@ -2,6 +2,7 @@ import express from 'express';
 import { env } from './config';
 import { sequelize } from './db';
 import { authRouter } from './routes/auth';
+import { usersRouter } from './routes/users';
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.get('/api/health', async (req, res) => {
 
 // Login and register routes
 app.use('/api/auth', authRouter);
+
+// User management routes (admins only)
+app.use('/api/users', usersRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
