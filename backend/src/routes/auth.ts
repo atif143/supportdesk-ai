@@ -99,6 +99,18 @@ authRouter.post('/refresh', async (req, res) => {
   res.json({ token: makeLoginToken(user.id, user.role) });
 });
 
+// POST /api/auth/logout  -> delete the refresh token and the cookie
+authRouter.post('/logout', async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (refreshToken) {
+    await RefreshToken.destroy({ where: { tokenHash: hashToken(refreshToken) } });
+  }
+
+  res.clearCookie('refreshToken', { path: '/api/auth' });
+  res.status(204).send();
+});
+
 // GET /api/auth/me  -> who is logged in?
 authRouter.get('/me', requireLogin, async (req, res) => {
   const user = await User.findByPk(res.locals.user.userId, {
