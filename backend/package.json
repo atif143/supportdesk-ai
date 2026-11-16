@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:undo": "sequelize-cli db:migrate:undo"
   },
   "dependencies": {
     "dotenv": "^18.0.10",
@@ -17,6 +19,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
+    "sequelize-cli": "^6.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
