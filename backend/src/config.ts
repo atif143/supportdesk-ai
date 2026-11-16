@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import pino from 'pino';
 
 // 1. Read the .env file.
 //    We look in the backend folder first, then in the main project folder.
@@ -21,8 +20,3 @@ export const env = {
   PORT: Number(process.env.PORT) || 4000,
   DATABASE_URL: process.env.DATABASE_URL as string,
 };
-
-// 4. The logger. Use it instead of console.log, for example: logger.info('Hello')
-export const logger = pino({
-  level: env.NODE_ENV === 'test' ? 'silent' : 'info',
-});
