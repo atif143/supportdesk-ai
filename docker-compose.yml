@@ -1,0 +1,19 @@
+# Starts our database with: docker compose up -d
+
+services:
+  db:
+    # PostgreSQL 16 with the "pgvector" add-on (we need it later for AI search)
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: supportdesk
+      POSTGRES_PASSWORD: supportdesk
+      POSTGRES_DB: supportdesk
+    ports:
+      # "port on your PC : port inside Docker"
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Keeps the data saved when the container stops
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
