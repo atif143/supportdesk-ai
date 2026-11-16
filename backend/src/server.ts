@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { env } from './config';
 import { sequelize } from './db';
 import { authRouter } from './routes/auth';
@@ -8,6 +9,9 @@ const app = express();
 
 // Read JSON data sent by the browser
 app.use(express.json());
+
+// Read cookies sent by the browser
+app.use(cookieParser());
 
 // Check if the server and the database are working
 app.get('/api/health', async (req, res) => {
