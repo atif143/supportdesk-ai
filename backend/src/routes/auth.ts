@@ -1,26 +1,26 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { z } from 'zod';
 import { User } from '../models/user';
 
 export const authRouter = Router();
 
-// The rules for the register form
-const registerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.email('Email is not valid'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
-
 // POST /api/auth/register  -> create a new customer account
 authRouter.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
   // 1. Check the data the user sent
-  const result = registerSchema.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json({ error: result.error.issues[0].message });
+  if (!name || !email || !password) {
+    res.status(400).json({ error: 'Name, email and password are required' });
     return;
   }
-  const { name, email, password } = result.data;
+  if (!email.includes('@')) {
+    res.status(400).json({ error: 'Email is not valid' });
+    return;
+  }
+  if (password.length < 8) {
+    res.status(400).json({ error: 'Password must be at least 8 characters' });
+    return;
+  }
 
   // 2. Stop if the email is already used
   const existingUser = await User.findOne({ where: { email } });
