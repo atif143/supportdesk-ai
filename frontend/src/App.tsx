@@ -5,6 +5,7 @@ import { api, setLoginToken } from './api';
 import { LoginPage } from './pages/LoginPage';
 import { NewTicketPage } from './pages/NewTicketPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { TicketDetailPage } from './pages/TicketDetailPage';
 import { TicketsPage } from './pages/TicketsPage';
 
 export type User = {
@@ -56,6 +57,10 @@ export function App() {
         element={user ? <TicketsPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
       />
       <Route path="/tickets/new" element={user ? <NewTicketPage /> : <Navigate to="/login" />} />
+      <Route
+        path="/tickets/:id"
+        element={user ? <TicketDetailPage user={user} /> : <Navigate to="/login" />}
+      />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       <Route path="/register" element={<RegisterPage />} />
     </Routes>

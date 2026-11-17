@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../db';
+import { User } from './user';
 
 export const Comment = sequelize.define(
   'Comment',
@@ -32,3 +33,6 @@ export const Comment = sequelize.define(
     updatedAt: false,
   },
 );
+
+// Each comment has one author (a user)
+Comment.belongsTo(User, { foreignKey: 'authorId', as: 'author' });

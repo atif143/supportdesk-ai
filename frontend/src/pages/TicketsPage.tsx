@@ -118,7 +118,9 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
           <tbody>
             {tickets.map((ticket) => (
               <tr key={ticket.id}>
-                <td>{ticket.title}</td>
+                <td>
+                  <Link to={`/tickets/${ticket.id}`}>{ticket.title}</Link>
+                </td>
                 <td>{ticket.status}</td>
                 <td>{ticket.priority}</td>
                 <td>{ticket.category}</td>

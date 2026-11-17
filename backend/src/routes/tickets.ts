@@ -189,6 +189,7 @@ ticketsRouter.get('/:id/comments', requireLogin, async (req, res) => {
   const comments = await Comment.findAll({
     where: filter,
     order: [['createdAt', 'ASC']],
+    include: [{ model: User, as: 'author', attributes: ['name', 'role'] }], // add the author's name
   });
 
   res.json(comments);
