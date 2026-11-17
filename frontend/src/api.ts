@@ -29,7 +29,8 @@ export async function api(path: string, options: RequestInit = {}) {
     }
   }
 
-  const data = await response.json();
+  // If the answer is not JSON (for example the server is down), use an empty object
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     throw new Error(data.error || 'Something went wrong');

@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { api, setLoginToken } from './api';
 import { LoginPage } from './pages/LoginPage';
+import { NewTicketPage } from './pages/NewTicketPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { TicketsPage } from './pages/TicketsPage';
 
@@ -54,6 +55,7 @@ export function App() {
         path="/"
         element={user ? <TicketsPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
       />
+      <Route path="/tickets/new" element={user ? <NewTicketPage /> : <Navigate to="/login" />} />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       <Route path="/register" element={<RegisterPage />} />
     </Routes>

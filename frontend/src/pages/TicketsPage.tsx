@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
 
@@ -49,6 +50,10 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
       </p>
 
       <h1>Tickets</h1>
+
+      <p>
+        <Link to="/tickets/new">New ticket</Link>
+      </p>
 
       <form onSubmit={handleSearch}>
         <label>
