@@ -20,9 +20,12 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
   const [category, setCategory] = useState('');
   const [searchText, setSearchText] = useState(''); // what is typed in the box
   const [search, setSearch] = useState(''); // what we actually search for
+  // Agents start with only their own tickets. Admins start with all tickets.
+  const [onlyMine, setOnlyMine] = useState(user.role === 'agent');
 
   // Build the address, for example: /tickets?page=1&status=open
   const params = new URLSearchParams({ page: String(page) });
+  if (onlyMine) params.set('assigneeId', user.id);
   if (status) params.set('status', status);
   if (priority) params.set('priority', priority);
   if (category) params.set('category', category);
@@ -30,7 +33,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
 
   // Load the tickets. It loads again by itself when the page or a filter changes.
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tickets', page, status, priority, category, search],
+    queryKey: ['tickets', page, onlyMine, status, priority, category, search],
     queryFn: () => api(`/tickets?${params}`),
   });
 
@@ -62,6 +65,19 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
         </label>
         <button type="submit">Search</button>
       </form>
+
+      {user.role !== 'customer' && (
+        <label>
+          Show
+          <select
+            value={onlyMine ? 'mine' : 'all'}
+            onChange={(e) => { setOnlyMine(e.target.value === 'mine'); setPage(1); }}
+          >
+            <option value="mine">Assigned to me</option>
+            <option value="all">All tickets</option>
+          </select>
+        </label>
+      )}
 
       <label>
         Status
