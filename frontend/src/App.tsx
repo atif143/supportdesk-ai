@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { HomePage } from './pages/HomePage';
+import { api, setLoginToken } from './api';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { TicketsPage } from './pages/TicketsPage';
 
 export type User = {
   id: string;
@@ -16,6 +18,7 @@ export function App() {
   const [user, setUser] = useState<User | null>(null);
   // true while we check if the user is still logged in
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // When the website opens, use the refresh cookie to log the user back in
   useEffect(() => {
@@ -24,10 +27,8 @@ export function App() {
 
       if (refreshResponse.ok) {
         const { token } = await refreshResponse.json();
-        const meResponse = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(await meResponse.json());
+        setLoginToken(token);
+        setUser(await api('/auth/me'));
       }
 
       setLoading(false);
@@ -38,6 +39,8 @@ export function App() {
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
+    setLoginToken('');
+    queryClient.clear(); // forget all loaded data
     setUser(null);
   }
 
@@ -49,7 +52,7 @@ export function App() {
     <Routes>
       <Route
         path="/"
-        element={user ? <HomePage user={user} onLogout={logout} /> : <Navigate to="/login" />}
+        element={user ? <TicketsPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
       />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       <Route path="/register" element={<RegisterPage />} />

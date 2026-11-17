@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { setLoginToken } from '../api';
 import { User } from '../App';
 
 export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
@@ -24,6 +25,7 @@ export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
       return;
     }
 
+    setLoginToken(data.token);
     onLogin(data.user);
     navigate('/');
   }
