@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Op } from 'sequelize';
 import { requireLogin } from '../middleware/requireLogin';
 import { requireRole } from '../middleware/requireRole';
 import { Comment } from '../models/comment';
@@ -16,8 +17,10 @@ const NEXT_STATUSES: Record<string, string[]> = {
   closed: [],
 };
 
+const STATUSES = Object.keys(NEXT_STATUSES);
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const CATEGORIES = ['billing', 'bug', 'feature_request', 'account', 'other'];
+const SORT_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status'];
 
 // Finds a ticket, but only if this user is allowed to see it.
 // Customers can only see their own tickets. Returns null if not found or not allowed.
@@ -51,22 +54,58 @@ ticketsRouter.post('/', requireLogin, async (req, res) => {
   res.status(201).json(ticket);
 });
 
-// GET /api/tickets  -> list tickets, newest first
+// GET /api/tickets  -> list tickets, one page at a time
 // Customers see only their own tickets. Agents and admins see all tickets.
+// Example: /api/tickets?page=2&status=open&priority=high&search=refund&sortBy=priority&sortOrder=asc
 ticketsRouter.get('/', requireLogin, async (req, res) => {
   const { userId, role } = res.locals.user;
+  const { status, priority, category, assigneeId, search, sortBy, sortOrder } =
+    req.query as Record<string, string>;
 
-  const filter: { requesterId?: string } = {};
+  // 1. Filters
+  const filter: Record<string | symbol, unknown> = {};
+
   if (role === 'customer') {
     filter.requesterId = userId;
   }
+  if (STATUSES.includes(status)) {
+    filter.status = status;
+  }
+  if (PRIORITIES.includes(priority)) {
+    filter.priority = priority;
+  }
+  if (CATEGORIES.includes(category)) {
+    filter.category = category;
+  }
+  if (assigneeId) {
+    filter.assigneeId = assigneeId;
+  }
+  if (search) {
+    filter.title = { [Op.iLike]: `%${search}%` }; // title contains the text (any case)
+  }
 
-  const tickets = await Ticket.findAll({
+  // 2. Sorting (newest first if nothing is chosen)
+  let sortField = 'createdAt';
+  if (SORT_FIELDS.includes(sortBy)) {
+    sortField = sortBy;
+  }
+  let sortDirection = 'DESC';
+  if (sortOrder === 'asc') {
+    sortDirection = 'ASC';
+  }
+
+  // 3. Pages: 20 tickets per page (at most 100)
+  const page = Number(req.query.page) || 1;
+  const limit = Math.min(Number(req.query.limit) || 20, 100);
+
+  const { rows, count } = await Ticket.findAndCountAll({
     where: filter,
-    order: [['createdAt', 'DESC']],
+    order: [[sortField, sortDirection]],
+    limit: limit,
+    offset: (page - 1) * limit,
   });
 
-  res.json(tickets);
+  res.json({ tickets: rows, total: count, page, limit });
 });
 
 // GET /api/tickets/:id  -> one ticket
