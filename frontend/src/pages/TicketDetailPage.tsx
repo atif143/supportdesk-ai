@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
@@ -19,6 +19,7 @@ export function TicketDetailPage({ user }: { user: User }) {
   const [body, setBody] = useState('');
   const [isInternal, setIsInternal] = useState(false);
   const [error, setError] = useState('');
+  const [updateError, setUpdateError] = useState('');
 
   // Load the ticket and its comments
   const ticketQuery = useQuery({
@@ -28,6 +29,34 @@ export function TicketDetailPage({ user }: { user: User }) {
   const commentsQuery = useQuery({
     queryKey: ['comments', id],
     queryFn: () => api(`/tickets/${id}/comments`),
+  });
+
+  // Change the ticket (agents and admins). "Optimistic": the screen changes at once,
+  // and if the server says no, the old values come back.
+  const updateTicket = useMutation({
+    mutationFn: (changes: Record<string, string>) =>
+      api(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(changes) }),
+
+    // 1. Before sending: remember the old ticket, then show the change at once
+    onMutate: async (changes) => {
+      setUpdateError('');
+      await queryClient.cancelQueries({ queryKey: ['ticket', id] });
+      const oldTicket = queryClient.getQueryData<Record<string, unknown>>(['ticket', id]);
+      queryClient.setQueryData(['ticket', id], { ...oldTicket, ...changes });
+      return { oldTicket };
+    },
+
+    // 2. If the server says no: put the old ticket back and show the error
+    onError: (err, changes, context) => {
+      queryClient.setQueryData(['ticket', id], context?.oldTicket);
+      setUpdateError(err.message);
+    },
+
+    // 3. In both cases: load the real ticket and the list again
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    },
   });
 
   async function handleAddComment(event: FormEvent) {
@@ -68,6 +97,54 @@ export function TicketDetailPage({ user }: { user: User }) {
         Status: {ticket.status} | Priority: {ticket.priority} | Category: {ticket.category}
       </p>
       <p>{ticket.description}</p>
+
+      {user.role !== 'customer' && (
+        <div>
+          <h2>Update ticket</h2>
+
+          {updateError && <p role="alert">{updateError}</p>}
+
+          <label>
+            Status
+            <select value={ticket.status} onChange={(e) => updateTicket.mutate({ status: e.target.value })}>
+              <option value="open">Open</option>
+              <option value="in_progress">In progress</option>
+              <option value="waiting_on_customer">Waiting on customer</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+
+          <label>
+            Priority
+            <select value={ticket.priority} onChange={(e) => updateTicket.mutate({ priority: e.target.value })}>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
+
+          <label>
+            Category
+            <select value={ticket.category} onChange={(e) => updateTicket.mutate({ category: e.target.value })}>
+              <option value="billing">Billing</option>
+              <option value="bug">Bug</option>
+              <option value="feature_request">Feature request</option>
+              <option value="account">Account</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <p>
+            {ticket.assigneeId === user.id ? (
+              'Assigned to you'
+            ) : (
+              <button onClick={() => updateTicket.mutate({ assigneeId: user.id })}>Assign to me</button>
+            )}
+          </p>
+        </div>
+      )}
 
       <h2>Comments</h2>
 
