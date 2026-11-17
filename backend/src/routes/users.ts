@@ -12,3 +12,13 @@ usersRouter.get('/', requireLogin, requireRole(['admin']), async (req, res) => {
   });
   res.json(users);
 });
+
+// GET /api/users/staff  -> list agents and admins, to choose who a ticket is assigned to
+usersRouter.get('/staff', requireLogin, requireRole(['agent', 'admin']), async (req, res) => {
+  const staff = await User.findAll({
+    where: { role: ['agent', 'admin'] },
+    attributes: ['id', 'name', 'role'],
+    order: [['name', 'ASC']],
+  });
+  res.json(staff);
+});

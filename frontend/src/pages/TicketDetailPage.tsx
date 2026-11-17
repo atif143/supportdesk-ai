@@ -12,6 +12,11 @@ type Comment = {
   author: { name: string; role: string };
 };
 
+type StaffMember = {
+  id: string;
+  name: string;
+};
+
 export function TicketDetailPage({ user }: { user: User }) {
   const { id } = useParams(); // the ticket id from the address /tickets/:id
   const queryClient = useQueryClient();
@@ -30,11 +35,17 @@ export function TicketDetailPage({ user }: { user: User }) {
     queryKey: ['comments', id],
     queryFn: () => api(`/tickets/${id}/comments`),
   });
+  // Agents and admins, for the "Assigned to" list (not loaded for customers)
+  const staffQuery = useQuery({
+    queryKey: ['staff'],
+    queryFn: () => api('/users/staff'),
+    enabled: user.role !== 'customer',
+  });
 
   // Change the ticket (agents and admins). "Optimistic": the screen changes at once,
   // and if the server says no, the old values come back.
   const updateTicket = useMutation({
-    mutationFn: (changes: Record<string, string>) =>
+    mutationFn: (changes: Record<string, string | null>) =>
       api(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(changes) }),
 
     // 1. Before sending: remember the old ticket, then show the change at once
@@ -85,6 +96,7 @@ export function TicketDetailPage({ user }: { user: User }) {
 
   const ticket = ticketQuery.data;
   const comments: Comment[] = commentsQuery.data || [];
+  const staff: StaffMember[] = staffQuery.data || [];
 
   return (
     <div>
@@ -136,13 +148,21 @@ export function TicketDetailPage({ user }: { user: User }) {
             </select>
           </label>
 
-          <p>
-            {ticket.assigneeId === user.id ? (
-              'Assigned to you'
-            ) : (
-              <button onClick={() => updateTicket.mutate({ assigneeId: user.id })}>Assign to me</button>
-            )}
-          </p>
+          <label>
+            Assigned to
+            <select
+              value={ticket.assigneeId || ''}
+              onChange={(e) => updateTicket.mutate({ assigneeId: e.target.value || null })}
+            >
+              <option value="">Nobody</option>
+              {staff.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                  {person.id === user.id && ' (you)'}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       )}
 

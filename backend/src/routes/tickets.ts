@@ -157,6 +157,11 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
     ticket.set('category', category);
   }
 
+  // null means "nobody": remove the assignee
+  if (assigneeId === null) {
+    ticket.set('assigneeId', null);
+  }
+
   if (assigneeId) {
     const assignee = await User.findByPk(assigneeId);
     if (!assignee || assignee.get('role') === 'customer') {
