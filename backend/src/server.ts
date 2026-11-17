@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import { env } from './config';
 import { sequelize } from './db';
 import { authRouter } from './routes/auth';
+import { ticketsRouter } from './routes/tickets';
 import { usersRouter } from './routes/users';
 
 const app = express();
@@ -28,6 +29,9 @@ app.use('/api/auth', authRouter);
 
 // User management routes (admins only)
 app.use('/api/users', usersRouter);
+
+// Ticket routes
+app.use('/api/tickets', ticketsRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
