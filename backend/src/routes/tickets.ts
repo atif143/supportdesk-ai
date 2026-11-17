@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireLogin } from '../middleware/requireLogin';
 import { requireRole } from '../middleware/requireRole';
+import { Comment } from '../models/comment';
 import { Ticket } from '../models/ticket';
 import { User } from '../models/user';
 
@@ -17,6 +18,20 @@ const NEXT_STATUSES: Record<string, string[]> = {
 
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const CATEGORIES = ['billing', 'bug', 'feature_request', 'account', 'other'];
+
+// Finds a ticket, but only if this user is allowed to see it.
+// Customers can only see their own tickets. Returns null if not found or not allowed.
+async function findTicketForUser(ticketId: string, userId: string, role: string) {
+  const ticket = await Ticket.findByPk(ticketId);
+
+  if (!ticket) {
+    return null;
+  }
+  if (role === 'customer' && ticket.get('requesterId') !== userId) {
+    return null;
+  }
+  return ticket;
+}
 
 // POST /api/tickets  -> create a new ticket (any logged-in user)
 ticketsRouter.post('/', requireLogin, async (req, res) => {
@@ -57,15 +72,9 @@ ticketsRouter.get('/', requireLogin, async (req, res) => {
 // GET /api/tickets/:id  -> one ticket
 ticketsRouter.get('/:id', requireLogin, async (req, res) => {
   const { userId, role } = res.locals.user;
-  const ticket = await Ticket.findByPk(req.params.id as string);
+  const ticket = await findTicketForUser(req.params.id as string, userId, role);
 
   if (!ticket) {
-    res.status(404).json({ error: 'Ticket not found' });
-    return;
-  }
-
-  // A customer may only open their own tickets
-  if (role === 'customer' && ticket.get('requesterId') !== userId) {
     res.status(404).json({ error: 'Ticket not found' });
     return;
   }
@@ -120,4 +129,61 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
 
   await ticket.save();
   res.json(ticket);
+});
+
+// GET /api/tickets/:id/comments  -> comments of a ticket, oldest first
+// Customers never see internal comments.
+ticketsRouter.get('/:id/comments', requireLogin, async (req, res) => {
+  const { userId, role } = res.locals.user;
+  const ticket = await findTicketForUser(req.params.id as string, userId, role);
+
+  if (!ticket) {
+    res.status(404).json({ error: 'Ticket not found' });
+    return;
+  }
+
+  const filter: { ticketId: string; visibility?: string } = { ticketId: ticket.get('id') as string };
+  if (role === 'customer') {
+    filter.visibility = 'public';
+  }
+
+  const comments = await Comment.findAll({
+    where: filter,
+    order: [['createdAt', 'ASC']],
+  });
+
+  res.json(comments);
+});
+
+// POST /api/tickets/:id/comments  -> add a comment
+// Customers can only write public comments. Agents and admins can choose "internal".
+ticketsRouter.post('/:id/comments', requireLogin, async (req, res) => {
+  const { userId, role } = res.locals.user;
+  const ticket = await findTicketForUser(req.params.id as string, userId, role);
+
+  if (!ticket) {
+    res.status(404).json({ error: 'Ticket not found' });
+    return;
+  }
+
+  const { body, visibility } = req.body;
+
+  if (!body) {
+    res.status(400).json({ error: 'Comment text is required' });
+    return;
+  }
+
+  let finalVisibility = 'public';
+  if (role !== 'customer' && visibility === 'internal') {
+    finalVisibility = 'internal';
+  }
+
+  const comment = await Comment.create({
+    ticketId: ticket.get('id'),
+    authorId: userId,
+    body,
+    visibility: finalVisibility,
+  });
+
+  res.status(201).json(comment);
 });
