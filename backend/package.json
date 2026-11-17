@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "db:migrate": "sequelize-cli db:migrate",
-    "db:undo": "sequelize-cli db:migrate:undo"
+    "db:undo": "sequelize-cli db:migrate:undo",
+    "db:seed": "sequelize-cli db:seed:all",
+    "db:seed:undo": "sequelize-cli db:seed:undo:all"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
