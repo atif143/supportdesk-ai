@@ -9,5 +9,5 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET || '',
   LLM_PROVIDER: process.env.LLM_PROVIDER || 'mock',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
 };
