@@ -1,14 +1,14 @@
 import { env } from '../config';
 import { AiLog } from '../models/aiLog';
-import { CompletionInput, getAiProvider } from './provider';
+import { AiInput, callAi } from './providers';
 
 // Use this function for every AI call.
 // It calls the AI and saves one row in ai_logs: tokens, time taken, and any error.
-export async function askAi(feature: string, input: CompletionInput, userId: string | null = null) {
+export async function askAi(feature: string, input: AiInput, userId: string | null = null) {
   const startTime = Date.now();
 
   try {
-    const result = await getAiProvider().complete(input);
+    const result = await callAi(input);
 
     await AiLog.create({
       userId,
