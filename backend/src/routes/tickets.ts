@@ -2,9 +2,9 @@ import { Router } from 'express';
 import { Op } from 'sequelize';
 import { requireLogin } from '../middleware/requireLogin';
 import { requireRole } from '../middleware/requireRole';
-import { Comment } from '../models/comment';
 import { Ticket } from '../models/ticket';
 import { User } from '../models/user';
+import { findTicketForUser } from '../utils/findTicketForUser';
 
 export const ticketsRouter = Router();
 
@@ -21,20 +21,7 @@ const STATUSES = Object.keys(NEXT_STATUSES);
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const CATEGORIES = ['billing', 'bug', 'feature_request', 'account', 'other'];
 const SORT_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status'];
-
-// Finds a ticket, but only if this user is allowed to see it.
-// Customers can only see their own tickets. Returns null if not found or not allowed.
-async function findTicketForUser(ticketId: string, userId: string, role: string) {
-  const ticket = await Ticket.findByPk(ticketId);
-
-  if (!ticket) {
-    return null;
-  }
-  if (role === 'customer' && ticket.get('requesterId') !== userId) {
-    return null;
-  }
-  return ticket;
-}
+const TICKETS_PER_PAGE = 20;
 
 // POST /api/tickets  -> create a new ticket (any logged-in user)
 ticketsRouter.post('/', requireLogin, async (req, res) => {
@@ -54,16 +41,16 @@ ticketsRouter.post('/', requireLogin, async (req, res) => {
   res.status(201).json(ticket);
 });
 
-// GET /api/tickets  -> list tickets, one page at a time
+// GET /api/tickets  -> list tickets, 20 per page
 // Customers see only their own tickets. Agents and admins see all tickets.
-// Example: /api/tickets?page=2&status=open&priority=high&search=refund&sortBy=priority&sortOrder=asc
+// Example: /api/tickets?page=2&status=open&search=refund&sortBy=priority&sortOrder=asc
 ticketsRouter.get('/', requireLogin, async (req, res) => {
   const { userId, role } = res.locals.user;
   const { status, priority, category, assigneeId, search, sortBy, sortOrder } =
     req.query as Record<string, string>;
 
   // 1. Filters
-  const filter: Record<string | symbol, unknown> = {};
+  const filter: Record<string, unknown> = {};
 
   if (role === 'customer') {
     filter.requesterId = userId;
@@ -94,18 +81,17 @@ ticketsRouter.get('/', requireLogin, async (req, res) => {
     sortDirection = 'ASC';
   }
 
-  // 3. Pages: 20 tickets per page (at most 100)
+  // 3. Which page
   const page = Number(req.query.page) || 1;
-  const limit = Math.min(Number(req.query.limit) || 20, 100);
 
   const { rows, count } = await Ticket.findAndCountAll({
     where: filter,
     order: [[sortField, sortDirection]],
-    limit: limit,
-    offset: (page - 1) * limit,
+    limit: TICKETS_PER_PAGE,
+    offset: (page - 1) * TICKETS_PER_PAGE,
   });
 
-  res.json({ tickets: rows, total: count, page, limit });
+  res.json({ tickets: rows, total: count, page, limit: TICKETS_PER_PAGE });
 });
 
 // GET /api/tickets/:id  -> one ticket
@@ -173,62 +159,4 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
 
   await ticket.save();
   res.json(ticket);
-});
-
-// GET /api/tickets/:id/comments  -> comments of a ticket, oldest first
-// Customers never see internal comments.
-ticketsRouter.get('/:id/comments', requireLogin, async (req, res) => {
-  const { userId, role } = res.locals.user;
-  const ticket = await findTicketForUser(req.params.id as string, userId, role);
-
-  if (!ticket) {
-    res.status(404).json({ error: 'Ticket not found' });
-    return;
-  }
-
-  const filter: { ticketId: string; visibility?: string } = { ticketId: ticket.get('id') as string };
-  if (role === 'customer') {
-    filter.visibility = 'public';
-  }
-
-  const comments = await Comment.findAll({
-    where: filter,
-    order: [['createdAt', 'ASC']],
-    include: [{ model: User, as: 'author', attributes: ['name', 'role'] }], // add the author's name
-  });
-
-  res.json(comments);
-});
-
-// POST /api/tickets/:id/comments  -> add a comment
-// Customers can only write public comments. Agents and admins can choose "internal".
-ticketsRouter.post('/:id/comments', requireLogin, async (req, res) => {
-  const { userId, role } = res.locals.user;
-  const ticket = await findTicketForUser(req.params.id as string, userId, role);
-
-  if (!ticket) {
-    res.status(404).json({ error: 'Ticket not found' });
-    return;
-  }
-
-  const { body, visibility } = req.body;
-
-  if (!body) {
-    res.status(400).json({ error: 'Comment text is required' });
-    return;
-  }
-
-  let finalVisibility = 'public';
-  if (role !== 'customer' && visibility === 'internal') {
-    finalVisibility = 'internal';
-  }
-
-  const comment = await Comment.create({
-    ticketId: ticket.get('id'),
-    authorId: userId,
-    body,
-    visibility: finalVisibility,
-  });
-
-  res.status(201).json(comment);
 });

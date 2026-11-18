@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import { env } from './config';
 import { sequelize } from './db';
 import { authRouter } from './routes/auth';
+import { commentsRouter } from './routes/comments';
 import { ticketsRouter } from './routes/tickets';
 import { usersRouter } from './routes/users';
 
@@ -27,11 +28,12 @@ app.get('/api/health', async (req, res) => {
 // Login and register routes
 app.use('/api/auth', authRouter);
 
-// User management routes (admins only)
+// User routes
 app.use('/api/users', usersRouter);
 
-// Ticket routes
+// Ticket and comment routes
 app.use('/api/tickets', ticketsRouter);
+app.use('/api/tickets', commentsRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
