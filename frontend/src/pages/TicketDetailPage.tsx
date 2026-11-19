@@ -112,6 +112,34 @@ export function TicketDetailPage({ user }: { user: User }) {
 
       {user.role !== 'customer' && (
         <div>
+          <h2>AI suggestion</h2>
+
+          {!ticket.aiCategory && <p>No AI suggestion yet.</p>}
+
+          {ticket.aiCategory && (
+            <div>
+              {ticket.needsReview && <p role="alert">Needs review by a person.</p>}
+              <p>
+                Category: {ticket.aiCategory} | Priority: {ticket.aiPriority}
+              </p>
+              <p>Reason: {ticket.aiReason}</p>
+
+              {ticket.category === ticket.aiCategory && ticket.priority === ticket.aiPriority ? (
+                <p>The ticket uses this suggestion.</p>
+              ) : (
+                <button
+                  onClick={() => updateTicket.mutate({ category: ticket.aiCategory, priority: ticket.aiPriority })}
+                >
+                  Accept suggestion
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {user.role !== 'customer' && (
+        <div>
           <h2>Update ticket</h2>
 
           {updateError && <p role="alert">{updateError}</p>}

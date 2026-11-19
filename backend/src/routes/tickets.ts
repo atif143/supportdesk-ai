@@ -23,6 +23,9 @@ const STATUSES = Object.keys(NEXT_STATUSES);
 const SORT_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status'];
 const TICKETS_PER_PAGE = 20;
 
+// The AI suggestion is only for agents and admins, so customers do not get these fields
+const AI_FIELDS = ['aiCategory', 'aiPriority', 'aiReason', 'needsReview'];
+
 // POST /api/tickets  -> create a new ticket (any logged-in user)
 ticketsRouter.post('/', requireLogin, async (req, res) => {
   const { title, description } = req.body;
@@ -90,8 +93,15 @@ ticketsRouter.get('/', requireLogin, async (req, res) => {
   // 3. Which page
   const page = Number(req.query.page) || 1;
 
+  // Customers do not get the AI fields
+  let hiddenFields: string[] = [];
+  if (role === 'customer') {
+    hiddenFields = AI_FIELDS;
+  }
+
   const { rows, count } = await Ticket.findAndCountAll({
     where: filter,
+    attributes: { exclude: hiddenFields },
     order: [[sortField, sortDirection]],
     limit: TICKETS_PER_PAGE,
     offset: (page - 1) * TICKETS_PER_PAGE,
@@ -110,7 +120,16 @@ ticketsRouter.get('/:id', requireLogin, async (req, res) => {
     return;
   }
 
-  res.json(ticket);
+  const data = ticket.toJSON();
+
+  // Customers do not get the AI fields
+  if (role === 'customer') {
+    for (const field of AI_FIELDS) {
+      delete data[field];
+    }
+  }
+
+  res.json(data);
 });
 
 // PATCH /api/tickets/:id  -> change status, priority, category or assignee (agents and admins)
@@ -147,6 +166,11 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
       return;
     }
     ticket.set('category', category);
+  }
+
+  // A person chose the priority or category, so the ticket no longer needs review
+  if (priority || category) {
+    ticket.set('needsReview', false);
   }
 
   // null means "nobody": remove the assignee
