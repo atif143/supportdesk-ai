@@ -5,6 +5,8 @@ import { requireRole } from '../middleware/requireRole';
 import { Ticket } from '../models/ticket';
 import { User } from '../models/user';
 import { findTicketForUser } from '../utils/findTicketForUser';
+import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
+import { classifyTicket } from '../ai/classifyTicket';
 
 export const ticketsRouter = Router();
 
@@ -18,8 +20,6 @@ const NEXT_STATUSES: Record<string, string[]> = {
 };
 
 const STATUSES = Object.keys(NEXT_STATUSES);
-const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
-const CATEGORIES = ['billing', 'bug', 'feature_request', 'account', 'other'];
 const SORT_FIELDS = ['createdAt', 'updatedAt', 'priority', 'status'];
 const TICKETS_PER_PAGE = 20;
 
@@ -39,6 +39,12 @@ ticketsRouter.post('/', requireLogin, async (req, res) => {
   });
 
   res.status(201).json(ticket);
+
+  // Ask the AI for a category and priority in the background.
+  // No "await": the user gets the answer above right away, even if the AI is slow or down.
+  classifyTicket(ticket.get('id') as string).catch((error) => {
+    console.log('Could not classify ticket:', error.message);
+  });
 });
 
 // GET /api/tickets  -> list tickets, 20 per page

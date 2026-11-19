@@ -8,7 +8,7 @@ export async function askAi(feature: string, input: AiInput, userId: string | nu
   const startTime = Date.now();
 
   try {
-    const result = await callAi(input);
+    const result = await callAi(feature, input);
 
     await AiLog.create({
       userId,

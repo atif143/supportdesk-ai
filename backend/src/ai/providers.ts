@@ -15,9 +15,16 @@ export type AiResult = {
 };
 
 // 1. The fake AI. No internet, no key, always the same answer for the same input.
-async function mockAi(input: AiInput): Promise<AiResult> {
+async function mockAi(feature: string, input: AiInput): Promise<AiResult> {
+  let text = `Mock answer for: ${input.prompt.slice(0, 50)}`;
+
+  // Ticket sorting needs a JSON answer
+  if (feature === 'classify') {
+    text = '{"category": "other", "priority": "medium", "reason": "Mock suggestion."}';
+  }
+
   return {
-    text: `Mock answer for: ${input.prompt.slice(0, 50)}`,
+    text,
     model: 'mock',
     inputTokens: 0,
     outputTokens: 0,
@@ -56,9 +63,9 @@ async function geminiAi(input: AiInput): Promise<AiResult> {
 }
 
 // Send the input to the AI chosen in .env (LLM_PROVIDER = "gemini" or "mock")
-export function callAi(input: AiInput) {
+export function callAi(feature: string, input: AiInput) {
   if (env.LLM_PROVIDER === 'gemini') {
     return geminiAi(input);
   }
-  return mockAi(input);
+  return mockAi(feature, input);
 }

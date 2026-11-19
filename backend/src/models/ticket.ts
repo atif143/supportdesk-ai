@@ -36,6 +36,20 @@ export const Ticket = sequelize.define(
     assigneeId: {
       type: DataTypes.UUID,
     },
+    // What the AI suggested when the ticket was created
+    aiCategory: {
+      type: DataTypes.STRING,
+    },
+    aiPriority: {
+      type: DataTypes.STRING,
+    },
+    aiReason: {
+      type: DataTypes.TEXT,
+    },
+    needsReview: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     tableName: 'tickets',
