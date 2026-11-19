@@ -38,10 +38,12 @@ async function mockAi(feature: string, input: AiInput): Promise<AiResult> {
 }
 
 // 2. The real AI: Google Gemini
-async function geminiAi(input: AiInput): Promise<AiResult> {
+
+// Send one request to Gemini
+function sendToGemini(input: AiInput) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent`;
 
-  const response = await fetch(url, {
+  return fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -53,6 +55,23 @@ async function geminiAi(input: AiInput): Promise<AiResult> {
     }),
     signal: AbortSignal.timeout(30000), // give up after 30 seconds
   });
+}
+
+// How long to wait before each new try, in milliseconds
+const WAIT_TIMES = [1000, 2000];
+
+async function geminiAi(input: AiInput): Promise<AiResult> {
+  let response = await sendToGemini(input);
+
+  // 429 = too many requests, 503 = Google is busy.
+  // Both are usually gone a moment later, so wait and try again (at most 2 more times).
+  for (const waitTime of WAIT_TIMES) {
+    if (response.status !== 429 && response.status !== 503) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+    response = await sendToGemini(input);
+  }
 
   if (!response.ok) {
     throw new Error(`Gemini error: ${response.status}`);
