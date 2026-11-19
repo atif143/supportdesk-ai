@@ -1,6 +1,7 @@
 import { Ticket } from '../models/ticket';
 import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
 import { askAi } from './askAi';
+import { readJson } from './readJson';
 
 const SYSTEM = `You sort support tickets.
 Reply with only JSON in this shape:
@@ -11,30 +12,22 @@ reason is one short sentence.`;
 
 // Turn the AI text into { category, priority, reason }, or null if the answer is not valid
 function readAnswer(text: string) {
-  // The AI sometimes adds extra text around the JSON, so keep only the part between { and }
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) {
+  const answer = readJson(text);
+
+  if (!answer) {
+    return null;
+  }
+  if (!CATEGORIES.includes(answer.category)) {
+    return null;
+  }
+  if (!PRIORITIES.includes(answer.priority)) {
+    return null;
+  }
+  if (typeof answer.reason !== 'string' || answer.reason === '') {
     return null;
   }
 
-  try {
-    const answer = JSON.parse(text.slice(start, end + 1));
-
-    if (!CATEGORIES.includes(answer.category)) {
-      return null;
-    }
-    if (!PRIORITIES.includes(answer.priority)) {
-      return null;
-    }
-    if (typeof answer.reason !== 'string' || answer.reason === '') {
-      return null;
-    }
-
-    return { category: answer.category, priority: answer.priority, reason: answer.reason };
-  } catch (error) {
-    return null; // the text was not JSON
-  }
+  return { category: answer.category, priority: answer.priority, reason: answer.reason };
 }
 
 // Ask the AI for a category and priority, and save its suggestion on the ticket.

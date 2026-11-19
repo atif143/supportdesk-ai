@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireLogin } from '../middleware/requireLogin';
 import { Comment } from '../models/comment';
+import { TicketSummary } from '../models/ticketSummary';
 import { User } from '../models/user';
 import { findTicketForUser } from '../utils/findTicketForUser';
 
@@ -60,6 +61,12 @@ commentsRouter.post('/:id/comments', requireLogin, async (req, res) => {
     body,
     visibility: finalVisibility,
   });
+
+  // A new public comment makes the saved AI summary old, so delete it.
+  // (Internal notes are not sent to the AI, so they do not change the summary.)
+  if (finalVisibility === 'public') {
+    await TicketSummary.destroy({ where: { ticketId: ticket.get('id') } });
+  }
 
   res.status(201).json(comment);
 });

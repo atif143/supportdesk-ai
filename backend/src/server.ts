@@ -4,6 +4,7 @@ import { env } from './config';
 import { sequelize } from './db';
 import { authRouter } from './routes/auth';
 import { commentsRouter } from './routes/comments';
+import { summaryRouter } from './routes/summary';
 import { ticketsRouter } from './routes/tickets';
 import { usersRouter } from './routes/users';
 
@@ -34,6 +35,7 @@ app.use('/api/users', usersRouter);
 // Ticket and comment routes
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/tickets', commentsRouter);
+app.use('/api/tickets', summaryRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);

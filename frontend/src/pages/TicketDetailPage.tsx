@@ -70,6 +70,11 @@ export function TicketDetailPage({ user }: { user: User }) {
     },
   });
 
+  // Ask the AI for a summary and a draft reply (agents and admins)
+  const summarize = useMutation({
+    mutationFn: () => api(`/tickets/${id}/summary`, { method: 'POST' }),
+  });
+
   async function handleAddComment(event: FormEvent) {
     event.preventDefault();
     setError('');
@@ -81,6 +86,7 @@ export function TicketDetailPage({ user }: { user: User }) {
       });
       setBody('');
       setIsInternal(false);
+      summarize.reset(); // the summary is old now, so hide it
       queryClient.invalidateQueries({ queryKey: ['comments', id] }); // load the comments again
     } catch (err) {
       setError((err as Error).message);
@@ -133,6 +139,28 @@ export function TicketDetailPage({ user }: { user: User }) {
                   Accept suggestion
                 </button>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {user.role !== 'customer' && (
+        <div>
+          <h2>AI summary</h2>
+
+          <button onClick={() => summarize.mutate()} disabled={summarize.isPending}>
+            {summarize.isPending ? 'Summarizing...' : 'Summarize'}
+          </button>
+
+          {summarize.error && <p role="alert">{summarize.error.message}</p>}
+
+          {summarize.data && (
+            <div>
+              <p>Summary: {summarize.data.summary}</p>
+              <p>Main problem: {summarize.data.problem}</p>
+              <p>Customer mood: {summarize.data.sentiment}</p>
+              <p>Draft reply: {summarize.data.draftReply}</p>
+              <button onClick={() => setBody(summarize.data.draftReply)}>Use this reply</button>
             </div>
           )}
         </div>

@@ -23,6 +23,12 @@ async function mockAi(feature: string, input: AiInput): Promise<AiResult> {
     text = '{"category": "other", "priority": "medium", "reason": "Mock suggestion."}';
   }
 
+  // The ticket summary needs a JSON answer too
+  if (feature === 'summary') {
+    text =
+      '{"summary": "Mock summary.", "problem": "Mock problem.", "sentiment": "neutral", "draftReply": "Hello, thank you for your message. We are looking into it."}';
+  }
+
   return {
     text,
     model: 'mock',
@@ -54,8 +60,12 @@ async function geminiAi(input: AiInput): Promise<AiResult> {
 
   const data = await response.json();
 
+  // Gemini can send the answer in several pieces ("parts"), so join them all
+  const parts: { text: string }[] = data.candidates[0].content.parts;
+  const text = parts.map((part) => part.text).join('');
+
   return {
-    text: data.candidates[0].content.parts[0].text,
+    text,
     model: env.GEMINI_MODEL,
     inputTokens: data.usageMetadata.promptTokenCount,
     outputTokens: data.usageMetadata.candidatesTokenCount,
