@@ -23,6 +23,13 @@ export type EmbedResult = {
   model: string;
 };
 
+// One piece of a streamed answer. The token counts are the totals so far.
+export type StreamPiece = {
+  text: string;
+  inputTokens: number;
+  outputTokens: number;
+};
+
 // 1. The fake AI. No internet, no key, always the same answer for the same input.
 async function mockAi(feature: string, input: AiInput): Promise<AiResult> {
   let text = `Mock answer for: ${input.prompt.slice(0, 50)}`;
@@ -75,11 +82,32 @@ async function mockEmbed(texts: string[]): Promise<EmbedResult> {
   return { vectors: texts.map(mockEmbedOne), model: 'mock' };
 }
 
+// The fake stream: sends the mock answer one word at a time, with a short wait,
+// so the Stop button can be tested without internet.
+async function* mockStream(feature: string, input: AiInput, signal: AbortSignal) {
+  const { text } = await mockAi(feature, input);
+  const words = (text + ' This answer arrives word by word.').split(' ');
+
+  for (const word of words) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    if (signal.aborted) {
+      return; // the user pressed Stop, so we stop too
+    }
+    const piece: StreamPiece = { text: word + ' ', inputTokens: 0, outputTokens: 0 };
+    yield piece;
+  }
+}
+
 // 2. The real AI: Google Gemini
 
 // Send one request to Gemini. "action" is for example "gemini-3.5-flash-lite:generateContent".
-function sendToGemini(action: string, body: object) {
+// "stopSignal" (optional) lets the caller cancel the request, for example when the user presses Stop.
+function sendToGemini(action: string, body: object, stopSignal?: AbortSignal) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${action}`;
+
+  // Give up after 30 seconds, or earlier if the caller stops it
+  const timeout = AbortSignal.timeout(30000);
+  const signal = stopSignal ? AbortSignal.any([stopSignal, timeout]) : timeout;
 
   return fetch(url, {
     method: 'POST',
@@ -88,31 +116,37 @@ function sendToGemini(action: string, body: object) {
       'x-goog-api-key': env.GEMINI_API_KEY,
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30000), // give up after 30 seconds
+    signal,
   });
 }
 
 // How long to wait before each new try, in milliseconds
 const WAIT_TIMES = [1000, 2000];
 
-// Send to Gemini and return the JSON answer.
+// Send to Gemini and return the response.
 // 429 = too many requests, 503 = Google is busy.
 // Both are usually gone a moment later, so wait and try again (at most 2 more times).
-async function askGemini(action: string, body: object) {
-  let response = await sendToGemini(action, body);
+async function sendWithRetry(action: string, body: object, stopSignal?: AbortSignal) {
+  let response = await sendToGemini(action, body, stopSignal);
 
   for (const waitTime of WAIT_TIMES) {
     if (response.status !== 429 && response.status !== 503) {
       break;
     }
     await new Promise((resolve) => setTimeout(resolve, waitTime));
-    response = await sendToGemini(action, body);
+    response = await sendToGemini(action, body, stopSignal);
   }
 
   if (!response.ok) {
     throw new Error(`Gemini error: ${response.status}`);
   }
 
+  return response;
+}
+
+// Send to Gemini and return the JSON answer
+async function askGemini(action: string, body: object) {
+  const response = await sendWithRetry(action, body);
   return response.json();
 }
 
@@ -148,6 +182,61 @@ async function geminiEmbed(texts: string[]): Promise<EmbedResult> {
   return { vectors: embeddings.map((embedding) => embedding.values), model: env.GEMINI_EMBED_MODEL };
 }
 
+// Get the answer from Gemini in small pieces, as it is written.
+// Gemini sends "Server-Sent Events": lines that start with "data: " and hold JSON.
+async function* geminiStream(input: AiInput, signal: AbortSignal) {
+  const response = await sendWithRetry(
+    `${env.GEMINI_MODEL}:streamGenerateContent?alt=sse`,
+    {
+      systemInstruction: { parts: [{ text: input.system }] },
+      contents: [{ role: 'user', parts: [{ text: input.prompt }] }],
+    },
+    signal,
+  );
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  // A complete answer ends with a "finishReason". Sometimes Gemini closes the stream
+  // without one, in the middle of the answer. We must not show that as a full answer.
+  let finished = false;
+
+  // Read the answer bit by bit. If the user presses Stop, read() throws and we stop.
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || ''; // the last line may not be complete yet
+
+    for (const line of lines) {
+      if (!line.startsWith('data:')) {
+        continue;
+      }
+      const data = JSON.parse(line.slice(5));
+      const parts: { text?: string }[] = data.candidates?.[0]?.content?.parts || [];
+      if (data.candidates?.[0]?.finishReason) {
+        finished = true;
+      }
+
+      const piece: StreamPiece = {
+        text: parts.map((part) => part.text || '').join(''),
+        inputTokens: data.usageMetadata?.promptTokenCount || 0,
+        outputTokens: data.usageMetadata?.candidatesTokenCount || 0,
+      };
+      yield piece;
+    }
+  }
+
+  if (!finished) {
+    throw new Error('Gemini stream ended before the answer was complete');
+  }
+}
+
 // Send the input to the AI chosen in .env (LLM_PROVIDER = "gemini" or "mock")
 export function callAi(feature: string, input: AiInput) {
   if (env.LLM_PROVIDER === 'gemini') {
@@ -162,4 +251,12 @@ export function callEmbed(texts: string[]) {
     return geminiEmbed(texts);
   }
   return mockEmbed(texts);
+}
+
+// Stream an answer from the AI chosen in .env. "signal" stops it early.
+export function callStream(feature: string, input: AiInput, signal: AbortSignal) {
+  if (env.LLM_PROVIDER === 'gemini') {
+    return geminiStream(input, signal);
+  }
+  return mockStream(feature, input, signal);
 }

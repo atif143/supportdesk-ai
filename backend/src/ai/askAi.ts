@@ -1,6 +1,6 @@
 import { env } from '../config';
 import { AiLog } from '../models/aiLog';
-import { AiInput, callAi, callEmbed } from './providers';
+import { AiInput, callAi, callEmbed, callStream } from './providers';
 
 // Use this function for every AI call.
 // It calls the AI and saves one row in ai_logs: tokens, time taken, and any error.
@@ -67,5 +67,52 @@ export async function embedTexts(texts: string[], userId: string | null = null) 
     });
 
     throw error;
+  }
+}
+
+// Use this function to stream an answer piece by piece. It is logged like askAi.
+// "signal" stops the AI early (when the user presses Stop). Then the log says "cancelled".
+export async function* streamAi(feature: string, input: AiInput, userId: string, signal: AbortSignal) {
+  const startTime = Date.now();
+  const model = env.LLM_PROVIDER === 'gemini' ? env.GEMINI_MODEL : 'mock';
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  try {
+    for await (const piece of callStream(feature, input, signal)) {
+      // Gemini sends the token totals so far, so we keep the latest ones
+      inputTokens = piece.inputTokens || inputTokens;
+      outputTokens = piece.outputTokens || outputTokens;
+
+      if (piece.text) {
+        yield piece.text;
+      }
+    }
+
+    await AiLog.create({
+      userId,
+      feature,
+      model,
+      inputTokens,
+      outputTokens,
+      latencyMs: Date.now() - startTime,
+      status: signal.aborted ? 'cancelled' : 'success',
+    });
+  } catch (error) {
+    // When the user stops, the request is aborted and throws. That is not a real error.
+    await AiLog.create({
+      userId,
+      feature,
+      model,
+      inputTokens,
+      outputTokens,
+      latencyMs: Date.now() - startTime,
+      status: signal.aborted ? 'cancelled' : 'error',
+      errorMessage: signal.aborted ? null : (error as Error).message,
+    });
+
+    if (!signal.aborted) {
+      throw error;
+    }
   }
 }

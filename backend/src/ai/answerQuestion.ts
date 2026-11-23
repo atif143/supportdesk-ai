@@ -1,5 +1,5 @@
 import { env } from '../config';
-import { askAi } from './askAi';
+import { AiInput } from './providers';
 import { searchChunks } from './searchChunks';
 
 // How many chunks we look at for each question
@@ -18,7 +18,7 @@ const MAX_GAP_FROM_BEST = 0.1;
 export const DONT_KNOW = "I don't know based on our help articles.";
 
 // The prompt, with a name and a version, so we can see which prompt made which answer
-const KB_ANSWER_PROMPT = {
+export const KB_ANSWER_PROMPT = {
   name: 'kb-answer',
   version: 1,
   system: `You answer questions from support agents using ONLY the help articles given to you.
@@ -36,8 +36,11 @@ export type Source = {
   link: string;
 };
 
-// Answer a question from the help articles, with the articles used as sources
-export async function answerQuestion(question: string, userId: string) {
+// Get everything ready to answer a question, before the AI starts writing:
+// the prompt for the AI, and the articles it will use as sources.
+// Returns null when no article is close enough. Then the answer is "I don't know"
+// and we do not call the AI at all (saves money).
+export async function prepareAnswer(question: string, userId: string) {
   // 1. Find the chunks that match the question, and keep only the close ones.
   //    The search returns the best chunk first.
   const found = await searchChunks(question, TOP_K, userId);
@@ -47,30 +50,24 @@ export async function answerQuestion(question: string, userId: string) {
       Number(chunk.similarity) >= MIN_SIMILARITY && Number(chunk.similarity) >= best - MAX_GAP_FROM_BEST,
   );
 
-  // 2. Nothing close enough: say "I don't know" without calling the AI (saves money)
   if (chunks.length === 0) {
-    return { answer: DONT_KNOW, sources: [] as Source[] };
+    return null;
   }
 
-  // 3. Give the AI only these chunks, each with its article title
+  // 2. Give the AI only these chunks, each with its article title
   const articlesText = chunks
     .map((chunk, index) => `[Article ${index + 1}: ${chunk.title}]\n${chunk.content}`)
     .join('\n\n');
 
-  const prompt = `Help articles:
+  const input: AiInput = {
+    system: KB_ANSWER_PROMPT.system,
+    prompt: `Help articles:
 ${articlesText}
 
-Question: ${question}`;
+Question: ${question}`,
+  };
 
-  const result = await askAi(KB_ANSWER_PROMPT.name, { system: KB_ANSWER_PROMPT.system, prompt }, userId);
-  const answer = result.text.trim();
-
-  // 4. If the AI did not know, there are no sources to show
-  if (answer.includes(DONT_KNOW)) {
-    return { answer: DONT_KNOW, sources: [] as Source[] };
-  }
-
-  // 5. The sources are the articles we gave the AI (each article once).
+  // 3. The sources are the articles we give the AI (each article once).
   //    We decide them ourselves, so the AI cannot invent a source.
   const sources: Source[] = [];
   for (const chunk of chunks) {
@@ -79,5 +76,5 @@ Question: ${question}`;
     }
   }
 
-  return { answer, sources };
+  return { input, sources };
 }

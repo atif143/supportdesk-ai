@@ -33,7 +33,7 @@ export const AiLog = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('success', 'error'),
+      type: DataTypes.ENUM('success', 'error', 'cancelled'),
       allowNull: false,
     },
     errorMessage: {
