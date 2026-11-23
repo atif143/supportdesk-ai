@@ -10,4 +10,5 @@ export const env = {
   LLM_PROVIDER: process.env.LLM_PROVIDER || 'mock',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
+  GEMINI_EMBED_MODEL: process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001',
 };

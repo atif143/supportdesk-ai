@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { makeChunks, saveChunks } from '../ai/articleChunks';
+import { sequelize } from '../db';
 import { requireLogin } from '../middleware/requireLogin';
 import { requireRole } from '../middleware/requireRole';
 import { Article } from '../models/article';
@@ -46,9 +48,24 @@ articlesRouter.get('/:id', requireLogin, requireRole(['agent', 'admin']), async 
   res.json(article);
 });
 
+// Cut the article into chunks and get their vectors from the AI.
+// Returns null if the AI failed. Then the caller saves nothing.
+async function tryMakeChunks(title: string, body: string, userId: string) {
+  try {
+    return await makeChunks(title, body, userId);
+  } catch (error) {
+    console.log('Could not index article:', (error as Error).message);
+    return null;
+  }
+}
+
+const INDEX_ERROR = 'The article could not be prepared for AI search. Nothing was saved. Please try again.';
+
 // POST /api/articles  -> create an article (admins only)
+// The article and its chunks are saved together, so the AI search can use it at once.
 articlesRouter.post('/', requireLogin, requireRole(['admin']), async (req, res) => {
   const { title, body } = req.body;
+  const userId = res.locals.user.userId;
 
   const error = checkArticle(title, body);
   if (error) {
@@ -56,11 +73,23 @@ articlesRouter.post('/', requireLogin, requireRole(['admin']), async (req, res) 
     return;
   }
 
-  const article = await Article.create({
-    title: title.trim(),
-    body: body.trim(),
-    createdBy: res.locals.user.userId,
+  // 1. Ask the AI first. If it fails, we stop before saving anything.
+  const chunks = await tryMakeChunks(title.trim(), body.trim(), userId);
+  if (!chunks) {
+    res.status(502).json({ error: INDEX_ERROR });
+    return;
+  }
+
+  // 2. Save the article and its chunks in one transaction (all or nothing)
+  const article = await sequelize.transaction(async (transaction) => {
+    const newArticle = await Article.create(
+      { title: title.trim(), body: body.trim(), createdBy: userId },
+      { transaction },
+    );
+    await saveChunks(newArticle.get('id') as string, chunks, transaction);
+    return newArticle;
   });
+
   res.status(201).json(article);
 });
 
@@ -80,11 +109,24 @@ articlesRouter.put('/:id', requireLogin, requireRole(['admin']), async (req, res
     return;
   }
 
-  await article.update({ title: title.trim(), body: body.trim() });
+  // The text changed, so the old chunks are wrong. Make new ones first.
+  const chunks = await tryMakeChunks(title.trim(), body.trim(), res.locals.user.userId);
+  if (!chunks) {
+    res.status(502).json({ error: INDEX_ERROR });
+    return;
+  }
+
+  // Save the new text and replace the chunks together
+  await sequelize.transaction(async (transaction) => {
+    await article.update({ title: title.trim(), body: body.trim() }, { transaction });
+    await saveChunks(article.get('id') as string, chunks, transaction);
+  });
+
   res.json(article);
 });
 
 // DELETE /api/articles/:id  -> delete an article (admins only)
+// Its chunks are deleted by the database too (ON DELETE CASCADE).
 articlesRouter.delete('/:id', requireLogin, requireRole(['admin']), async (req, res) => {
   const article = await Article.findByPk(req.params.id as string);
 
