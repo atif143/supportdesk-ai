@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { cardClasses } from '../utils';
+import { ErrorBox } from './ErrorBox';
 import { AlertIcon, CheckIcon, CopyIcon, MessageIcon } from './icons';
 
 export type AiSummary = {
@@ -16,34 +18,12 @@ type AiSummaryCardProps = {
   onUseReply: (reply: string) => void;
 };
 
-// The summary calls the customer's mood "positive", "frustrated" and so on.
-// We colour the badge to match, without making a negative mood look alarming.
-function sentimentMeta(sentiment: string) {
-  const value = sentiment.toLowerCase();
-  const label = value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Unknown';
-
-  if (/posi|happy|satisf|calm|pleas|relie/.test(value)) {
-    return {
-      label,
-      badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-      dot: 'bg-emerald-500',
-    };
-  }
-
-  if (/frustrat|angry|upset|annoy|negat|unhappy|urgent|confus/.test(value)) {
-    return {
-      label,
-      badge: 'border-amber-200 bg-amber-50 text-amber-800',
-      dot: 'bg-amber-500',
-    };
-  }
-
-  return {
-    label,
-    badge: 'border-zinc-200 bg-zinc-100 text-zinc-700',
-    dot: 'bg-zinc-400',
-  };
-}
+// The server sends one of three moods. Each gets its own badge colour.
+const MOODS: Record<string, { label: string; badge: string; dot: string }> = {
+  positive: { label: 'Positive', badge: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
+  neutral: { label: 'Neutral', badge: 'border-zinc-200 bg-zinc-100 text-zinc-700', dot: 'bg-zinc-400' },
+  negative: { label: 'Negative', badge: 'border-amber-200 bg-amber-50 text-amber-800', dot: 'bg-amber-500' },
+};
 
 const secondaryButton =
   'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900';
@@ -71,12 +51,12 @@ export function AiSummaryCard({
     }
   }
 
-  const mood = data ? sentimentMeta(data.sentiment) : null;
+  const mood = data ? MOODS[data.sentiment] : null;
 
   return (
     <section
       aria-labelledby="ai-summary-heading"
-      className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
+      className={cardClasses}
     >
       <div className="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -123,20 +103,7 @@ export function AiSummaryCard({
         ) : (
           <>
             {error && (
-              <div
-                role="alert"
-                className={`rounded-lg border border-red-200 bg-red-50 p-3 ${data ? 'mb-4' : ''}`}
-              >
-                <div className="flex items-start gap-2">
-                  <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-                  <div>
-                    <p className="text-[12.5px] font-medium leading-snug text-red-800">
-                      Could not create a summary
-                    </p>
-                    <p className="mt-0.5 text-[12px] leading-snug text-red-700">{error}</p>
-                  </div>
-                </div>
-              </div>
+              <ErrorBox title="Could not create a summary" message={error} className={data ? 'mb-4' : ''} />
             )}
 
             {data ? (

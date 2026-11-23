@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
 import { AiSummaryCard } from '../components/AiSummaryCard';
@@ -8,19 +8,18 @@ import { AppLayout } from '../components/AppLayout';
 import { AskAiCard } from '../components/AskAiCard';
 import {
   CATEGORY_LABELS,
+  CATEGORY_OPTIONS,
+  PRIORITY_OPTIONS,
   PriorityBadge,
   ReviewBadge,
   shortId,
+  STATUS_OPTIONS,
   StatusBadge,
 } from '../components/TicketBadges';
-import {
-  AlertIcon,
-  ArrowLeftIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  ClockIcon,
-  MessageIcon,
-} from '../components/icons';
+import { BackLink } from '../components/BackLink';
+import { ErrorBox } from '../components/ErrorBox';
+import { AlertIcon, CheckIcon, ChevronDownIcon, ClockIcon, MessageIcon } from '../components/icons';
+import { cardClasses, formatDateTime, initials } from '../utils';
 
 type Comment = {
   id: string;
@@ -51,14 +50,6 @@ type Ticket = {
   needsReview?: boolean;
 };
 
-const STATUS_OPTIONS = [
-  { value: 'open', label: 'Open' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'waiting_on_customer', label: 'Waiting on customer' },
-  { value: 'resolved', label: 'Resolved' },
-  { value: 'closed', label: 'Closed' },
-];
-
 // Which status a ticket can move to from its current status (the server enforces this too)
 const NEXT_STATUSES: Record<string, string[]> = {
   open: ['in_progress'],
@@ -68,49 +59,9 @@ const NEXT_STATUSES: Record<string, string[]> = {
   closed: [],
 };
 
-const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: 'billing', label: 'Billing' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'feature_request', label: 'Feature request' },
-  { value: 'account', label: 'Account' },
-  { value: 'other', label: 'Other' },
-];
-
-const cardClasses =
-  'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)]';
 const cardHeaderClasses = 'border-b border-zinc-100 px-5 py-3.5';
 const selectClasses =
   'h-9 w-full appearance-none rounded-lg border border-zinc-300 bg-white pl-2.5 pr-8 text-[13px] text-zinc-800 outline-none transition hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:cursor-not-allowed disabled:opacity-60';
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-
-  return date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    ...(sameYear ? {} : { year: 'numeric' }),
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
 
 function RolePill({ role }: { role: string }) {
   const label = role === 'agent' ? 'Agent' : role === 'admin' ? 'Admin' : 'Customer';
@@ -289,13 +240,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
     return (
       <AppLayout user={user} onLogout={onLogout}>
         <div className="mx-auto w-full max-w-xl">
-          <Link
-            to="/"
-            className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900"
-          >
-            <ArrowLeftIcon className="size-4" />
-            Back to tickets
-          </Link>
+          <BackLink to="/" label="Back to tickets" />
 
           <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5">
             <div className="flex items-start gap-3">
@@ -339,13 +284,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
   return (
     <AppLayout user={user} onLogout={onLogout}>
       <div className="mx-auto w-full max-w-6xl">
-        <Link
-          to="/"
-          className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          <ArrowLeftIcon className="size-4" />
-          Back to tickets
-        </Link>
+        <BackLink to="/" label="Back to tickets" />
 
         <header className="mt-4">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
@@ -418,13 +357,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                 </div>
               ) : commentsQuery.error ? (
                 <div className="px-5 py-5">
-                  <div
-                    role="alert"
-                    className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700"
-                  >
-                    <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-                    {commentsQuery.error.message}
-                  </div>
+                  <ErrorBox message={commentsQuery.error.message} />
                 </div>
               ) : comments.length === 0 ? (
                 <div className="px-5 py-10 text-center">
@@ -487,15 +420,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                 onSubmit={handleAddComment}
                 className="border-t border-zinc-100 bg-stone-50/60 px-5 py-4"
               >
-                {error && (
-                  <div
-                    role="alert"
-                    className="mb-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5 text-[12.5px] text-red-700"
-                  >
-                    <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-                    {error}
-                  </div>
-                )}
+                {error && <ErrorBox message={error} className="mb-3" />}
 
                 <label htmlFor="comment-body" className="sr-only">
                   {isInternal ? 'Internal note' : 'Comment'}
@@ -565,15 +490,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                   </div>
 
                   <div className="space-y-3.5 px-5 py-4">
-                    {updateError && (
-                      <div
-                        role="alert"
-                        className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5 text-[12px] text-red-700"
-                      >
-                        <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-                        {updateError}
-                      </div>
-                    )}
+                    {updateError && <ErrorBox message={updateError} />}
 
                     <SelectField
                       id="ticket-status"

@@ -3,12 +3,17 @@ import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
 import { askAi } from './askAi';
 import { readJson } from './readJson';
 
-const SYSTEM = `You sort support tickets.
+// The prompt, with a name and a version, so we can see which prompt made which answer
+const CLASSIFY_PROMPT = {
+  name: 'classify',
+  version: 1,
+  system: `You sort support tickets.
 Reply with only JSON in this shape:
 {"category": "...", "priority": "...", "reason": "..."}
 category must be one of: ${CATEGORIES.join(', ')}
 priority must be one of: ${PRIORITIES.join(', ')}
-reason is one short sentence.`;
+reason is one short sentence.`,
+};
 
 // Turn the AI text into { category, priority, reason }, or null if the answer is not valid
 function readAnswer(text: string) {
@@ -42,7 +47,7 @@ export async function classifyTicket(ticketId: string) {
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const result = await askAi('classify', { system: SYSTEM, prompt }, ticket.get('requesterId') as string);
+      const result = await askAi(CLASSIFY_PROMPT.name, { system: CLASSIFY_PROMPT.system, prompt }, ticket.get('requesterId') as string);
       const answer = readAnswer(result.text);
 
       if (answer) {

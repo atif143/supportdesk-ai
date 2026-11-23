@@ -16,11 +16,15 @@ import {
 } from '../components/icons';
 import {
   CATEGORY_LABELS,
+  CATEGORY_OPTIONS,
+  PRIORITY_OPTIONS,
   PriorityBadge,
   ReviewBadge,
   shortId,
+  STATUS_OPTIONS,
   StatusBadge,
 } from '../components/TicketBadges';
+import { cardClasses, formatDate } from '../utils';
 
 type Ticket = {
   id: string;
@@ -32,45 +36,13 @@ type Ticket = {
   needsReview?: boolean;
 };
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'open', label: 'Open' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'waiting_on_customer', label: 'Waiting on customer' },
-  { value: 'resolved', label: 'Resolved' },
-  { value: 'closed', label: 'Closed' },
-];
-
-const PRIORITY_OPTIONS = [
-  { value: '', label: 'All priorities' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'All categories' },
-  { value: 'billing', label: 'Billing' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'feature_request', label: 'Feature request' },
-  { value: 'account', label: 'Account' },
-  { value: 'other', label: 'Other' },
-];
+// The filter lists: the same choices as on the ticket page, plus "All ..." at the top
+const STATUS_FILTERS = [{ value: '', label: 'All statuses' }, ...STATUS_OPTIONS];
+const PRIORITY_FILTERS = [{ value: '', label: 'All priorities' }, ...PRIORITY_OPTIONS];
+const CATEGORY_FILTERS = [{ value: '', label: 'All categories' }, ...CATEGORY_OPTIONS];
 
 const searchInputClasses =
   'h-10 w-full rounded-lg border border-zinc-300 bg-white pl-9 pr-9 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10';
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    ...(sameYear ? {} : { year: 'numeric' }),
-  });
-}
 
 type FilterSelectProps = {
   label: string;
@@ -207,7 +179,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
 
         <section
           aria-busy={isLoading}
-          className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
+          className={`mt-6 ${cardClasses}`}
         >
           <div className="flex flex-col gap-2.5 border-b border-zinc-200 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:p-5">
             <form role="search" onSubmit={handleSearch} className="relative w-full lg:max-w-xs">
@@ -275,7 +247,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
               <FilterSelect
                 label="Filter by status"
                 value={status}
-                options={STATUS_OPTIONS}
+                options={STATUS_FILTERS}
                 onChange={(value) => {
                   setStatus(value);
                   setPage(1);
@@ -285,7 +257,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
               <FilterSelect
                 label="Filter by priority"
                 value={priority}
-                options={PRIORITY_OPTIONS}
+                options={PRIORITY_FILTERS}
                 onChange={(value) => {
                   setPriority(value);
                   setPage(1);
@@ -295,7 +267,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
               <FilterSelect
                 label="Filter by category"
                 value={category}
-                options={CATEGORY_OPTIONS}
+                options={CATEGORY_FILTERS}
                 className="col-span-2 sm:col-auto"
                 onChange={(value) => {
                   setCategory(value);

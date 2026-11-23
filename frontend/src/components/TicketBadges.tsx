@@ -43,6 +43,30 @@ export const CATEGORY_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
+// The choices for the drop-down lists (value = what the server uses, label = what people see)
+export const STATUS_OPTIONS = [
+  { value: 'open', label: 'Open' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'waiting_on_customer', label: 'Waiting on customer' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'closed', label: 'Closed' },
+];
+
+export const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+];
+
+export const CATEGORY_OPTIONS = [
+  { value: 'billing', label: 'Billing' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'feature_request', label: 'Feature request' },
+  { value: 'account', label: 'Account' },
+  { value: 'other', label: 'Other' },
+];
+
 // The first 8 letters of the id, for example #3F2A9C1B
 export function shortId(id: string) {
   return id.slice(0, 8).toUpperCase();

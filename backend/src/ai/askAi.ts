@@ -2,35 +2,51 @@ import { env } from '../config';
 import { AiLog } from '../models/aiLog';
 import { AiInput, callAi, callEmbed, callStream } from './providers';
 
-// Use this function for every AI call.
-// It calls the AI and saves one row in ai_logs: tokens, time taken, and any error.
+// One row for the ai_logs table
+type LogRow = {
+  userId: string | null;
+  feature: string;
+  model: string;
+  startTime: number; // Date.now() when the call started
+  status: 'success' | 'error' | 'cancelled';
+  inputTokens?: number;
+  outputTokens?: number;
+  errorMessage?: string;
+};
+
+// Save one AI call in ai_logs: tokens, time taken, and any error
+function saveLog(row: LogRow) {
+  return AiLog.create({
+    userId: row.userId,
+    feature: row.feature,
+    model: row.model,
+    inputTokens: row.inputTokens || 0,
+    outputTokens: row.outputTokens || 0,
+    latencyMs: Date.now() - row.startTime,
+    status: row.status,
+    errorMessage: row.errorMessage || null,
+  });
+}
+
+// Use this function for every AI call. It calls the AI and logs the call.
 export async function askAi(feature: string, input: AiInput, userId: string | null = null) {
   const startTime = Date.now();
 
   try {
     const result = await callAi(feature, input);
-
-    await AiLog.create({
+    await saveLog({
       userId,
       feature,
       model: result.model,
+      startTime,
+      status: 'success',
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,
-      latencyMs: Date.now() - startTime,
-      status: 'success',
     });
-
     return result;
   } catch (error) {
-    await AiLog.create({
-      userId,
-      feature,
-      model: env.LLM_PROVIDER,
-      latencyMs: Date.now() - startTime,
-      status: 'error',
-      errorMessage: (error as Error).message,
-    });
-
+    const errorMessage = (error as Error).message;
+    await saveLog({ userId, feature, model: env.LLM_PROVIDER, startTime, status: 'error', errorMessage });
     throw error; // let the caller decide what to do
   }
 }
@@ -46,26 +62,18 @@ export async function embedTexts(texts: string[], userId: string | null = null) 
     // so we guess: about 4 characters are 1 token.
     const characters = texts.reduce((sum, text) => sum + text.length, 0);
 
-    await AiLog.create({
+    await saveLog({
       userId,
       feature: 'embed',
       model: result.model,
-      inputTokens: Math.ceil(characters / 4),
-      latencyMs: Date.now() - startTime,
+      startTime,
       status: 'success',
+      inputTokens: Math.ceil(characters / 4),
     });
-
     return result.vectors;
   } catch (error) {
-    await AiLog.create({
-      userId,
-      feature: 'embed',
-      model: env.LLM_PROVIDER,
-      latencyMs: Date.now() - startTime,
-      status: 'error',
-      errorMessage: (error as Error).message,
-    });
-
+    const errorMessage = (error as Error).message;
+    await saveLog({ userId, feature: 'embed', model: env.LLM_PROVIDER, startTime, status: 'error', errorMessage });
     throw error;
   }
 }
@@ -89,30 +97,17 @@ export async function* streamAi(feature: string, input: AiInput, userId: string,
       }
     }
 
-    await AiLog.create({
-      userId,
-      feature,
-      model,
-      inputTokens,
-      outputTokens,
-      latencyMs: Date.now() - startTime,
-      status: signal.aborted ? 'cancelled' : 'success',
-    });
+    const status = signal.aborted ? 'cancelled' : 'success';
+    await saveLog({ userId, feature, model, startTime, status, inputTokens, outputTokens });
   } catch (error) {
     // When the user stops, the request is aborted and throws. That is not a real error.
-    await AiLog.create({
-      userId,
-      feature,
-      model,
-      inputTokens,
-      outputTokens,
-      latencyMs: Date.now() - startTime,
-      status: signal.aborted ? 'cancelled' : 'error',
-      errorMessage: signal.aborted ? null : (error as Error).message,
-    });
-
-    if (!signal.aborted) {
-      throw error;
+    if (signal.aborted) {
+      await saveLog({ userId, feature, model, startTime, status: 'cancelled', inputTokens, outputTokens });
+      return;
     }
+
+    const errorMessage = (error as Error).message;
+    await saveLog({ userId, feature, model, startTime, status: 'error', inputTokens, outputTokens, errorMessage });
+    throw error;
   }
 }

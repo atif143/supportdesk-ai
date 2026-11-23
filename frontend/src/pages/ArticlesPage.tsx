@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
-import { AlertIcon, PlusIcon } from '../components/icons';
+import { ErrorBox } from '../components/ErrorBox';
+import { PlusIcon } from '../components/icons';
+import { cardClasses, formatDate } from '../utils';
 
 type ArticleRow = {
   id: string;
@@ -128,21 +130,13 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
           <form
             onSubmit={handleSave}
             noValidate
-            className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-[0_1px_2px_rgba(24,24,27,0.04)] sm:p-6"
+            className={`mt-6 p-5 sm:p-6 ${cardClasses}`}
           >
             <h2 className="text-sm font-semibold text-zinc-900">
               {editingId === 'new' ? 'New article' : 'Edit article'}
             </h2>
 
-            {formError && (
-              <div
-                role="alert"
-                className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700"
-              >
-                <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-                {formError}
-              </div>
-            )}
+            {formError && <ErrorBox message={formError} className="mt-4" />}
 
             <div className="mt-4 space-y-4">
               <div>
@@ -204,23 +198,13 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
         )}
 
         {/* The list of articles */}
-        <section className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)]">
-          {listError && (
-            <div
-              role="alert"
-              className="m-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700"
-            >
-              <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-              {listError}
-            </div>
-          )}
+        <section className={`mt-6 ${cardClasses}`}>
+          {listError && <ErrorBox message={listError} className="m-4" />}
 
           {articlesQuery.isLoading ? (
             <p className="px-5 py-6 text-sm text-zinc-500">Loading articles…</p>
           ) : articlesQuery.error ? (
-            <div role="alert" className="px-5 py-6 text-sm text-red-700">
-              Could not load articles: {articlesQuery.error.message}
-            </div>
+            <ErrorBox title="Could not load articles" message={articlesQuery.error.message} className="m-4" />
           ) : articles.length === 0 ? (
             <div className="px-6 py-14 text-center">
               <p className="text-sm font-semibold text-zinc-900">No articles yet</p>
@@ -238,7 +222,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
                       {article.title}
                     </Link>
                     <p className="mt-0.5 text-[12px] text-zinc-500">
-                      Updated {new Date(article.updatedAt).toLocaleDateString()}
+                      Updated {formatDate(article.updatedAt)}
                     </p>
                   </div>
 

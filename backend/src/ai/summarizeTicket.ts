@@ -9,13 +9,18 @@ const SENTIMENTS = ['positive', 'neutral', 'negative'];
 // Long threads are cut so the AI request does not get too big (about 2,000 tokens)
 const MAX_THREAD_LENGTH = 8000;
 
-const SYSTEM = `You help a support agent with a ticket.
+// The prompt, with a name and a version, so we can see which prompt made which answer
+const SUMMARY_PROMPT = {
+  name: 'summary',
+  version: 1,
+  system: `You help a support agent with a ticket.
 Reply with only JSON in this shape:
 {"summary": "...", "problem": "...", "sentiment": "...", "draftReply": "..."}
 summary: what happened in the ticket, in 3 sentences or fewer.
 problem: the customer's main problem, in one sentence.
 sentiment: the customer's mood, one of: ${SENTIMENTS.join(', ')}
-draftReply: a short, polite reply from the agent to the customer.`;
+draftReply: a short, polite reply from the agent to the customer.`,
+};
 
 // Check the AI answer. Returns null if something is missing or wrong.
 function readAnswer(text: string) {
@@ -79,7 +84,7 @@ Comments:
 ${thread || '(no comments yet)'}`;
 
   // 4. Ask the AI and check the answer
-  const result = await askAi('summary', { system: SYSTEM, prompt }, userId);
+  const result = await askAi(SUMMARY_PROMPT.name, { system: SUMMARY_PROMPT.system, prompt }, userId);
   const answer = readAnswer(result.text);
 
   if (!answer) {

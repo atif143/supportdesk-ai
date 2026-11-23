@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiStream } from '../api';
+import { cardClasses } from '../utils';
+import { ErrorBox } from './ErrorBox';
 import { AlertIcon, MessageIcon, SendIcon, XIcon } from './icons';
 
 type Source = {
@@ -105,10 +107,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
   const canUseAnswer = !streaming && !error && !stopped && sources.length > 0;
 
   return (
-    <section
-      aria-labelledby="ask-ai-heading"
-      className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
-    >
+    <section aria-labelledby="ask-ai-heading" className={cardClasses}>
       <div className="flex items-center gap-2.5 border-b border-zinc-100 px-5 py-4">
         <span
           aria-hidden="true"
@@ -161,15 +160,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
           )}
         </form>
 
-        {error && (
-          <div
-            role="alert"
-            className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[12.5px] text-red-700"
-          >
-            <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
-            {error}
-          </div>
-        )}
+        {error && <ErrorBox message={error} className="mt-4" />}
 
         {/* The answer, growing while the AI writes it */}
         {(answer || streaming) && (

@@ -1,22 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '../App';
 import { Brand } from './Brand';
+import { initials } from '../utils';
 import { LogOutIcon } from './icons';
 
 type AppHeaderProps = {
   user: User;
   onLogout: () => void;
 };
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
 
 // A link in the top menu. The page you are on is shown with a grey background.
 function NavLink({ to, active, children }: { to: string; active: boolean; children: string }) {

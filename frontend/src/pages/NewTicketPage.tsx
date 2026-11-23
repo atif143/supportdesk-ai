@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
-import { AlertIcon, ArrowLeftIcon } from '../components/icons';
+import { BackLink } from '../components/BackLink';
+import { ErrorBox } from '../components/ErrorBox';
 
 type FieldErrors = {
   title?: string;
@@ -72,13 +73,7 @@ export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => 
   return (
     <AppLayout user={user} onLogout={onLogout}>
       <div className="mx-auto w-full max-w-2xl">
-        <Link
-          to="/"
-          className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          <ArrowLeftIcon className="size-4" />
-          Back to tickets
-        </Link>
+        <BackLink to="/" label="Back to tickets" />
 
         <div className="mt-4">
           <h1 className="text-2xl font-semibold tracking-[-0.025em] text-zinc-900">New ticket</h1>
@@ -92,18 +87,7 @@ export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => 
           noValidate
           className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-[0_1px_2px_rgba(24,24,27,0.04)] sm:p-6"
         >
-          {error && (
-            <div
-              role="alert"
-              className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3.5"
-            >
-              <AlertIcon className="mt-px size-5 shrink-0 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-800">Could not create the ticket</p>
-                <p className="mt-0.5 text-[13px] text-red-700">{error}</p>
-              </div>
-            </div>
-          )}
+          {error && <ErrorBox title="Could not create the ticket" message={error} className="mb-5" />}
 
           <div className="space-y-5">
             <div>
