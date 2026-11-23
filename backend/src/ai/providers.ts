@@ -38,6 +38,11 @@ async function mockAi(feature: string, input: AiInput): Promise<AiResult> {
       '{"summary": "Mock summary.", "problem": "Mock problem.", "sentiment": "neutral", "draftReply": "Hello, thank you for your message. We are looking into it."}';
   }
 
+  // The help article answer
+  if (feature === 'kb-answer') {
+    text = 'Mock answer from the help articles.';
+  }
+
   return {
     text,
     model: 'mock',

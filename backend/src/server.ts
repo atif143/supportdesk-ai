@@ -5,6 +5,7 @@ import { sequelize } from './db';
 import { articlesRouter } from './routes/articles';
 import { authRouter } from './routes/auth';
 import { commentsRouter } from './routes/comments';
+import { kbRouter } from './routes/kb';
 import { summaryRouter } from './routes/summary';
 import { ticketsRouter } from './routes/tickets';
 import { usersRouter } from './routes/users';
@@ -40,6 +41,9 @@ app.use('/api/tickets', summaryRouter);
 
 // Help article routes (the knowledge base)
 app.use('/api/articles', articlesRouter);
+
+// Knowledge base assistant: answers from the help articles
+app.use('/api/kb', kbRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
