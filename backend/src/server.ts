@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { env } from './config';
 import { sequelize } from './db';
+import { articlesRouter } from './routes/articles';
 import { authRouter } from './routes/auth';
 import { commentsRouter } from './routes/comments';
 import { summaryRouter } from './routes/summary';
@@ -36,6 +37,9 @@ app.use('/api/users', usersRouter);
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/tickets', commentsRouter);
 app.use('/api/tickets', summaryRouter);
+
+// Help article routes (the knowledge base)
+app.use('/api/articles', articlesRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
