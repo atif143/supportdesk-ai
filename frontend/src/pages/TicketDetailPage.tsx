@@ -5,6 +5,7 @@ import { api } from '../api';
 import { User } from '../App';
 import { AiSummaryCard } from '../components/AiSummaryCard';
 import { AppLayout } from '../components/AppLayout';
+import { AskAiCard } from '../components/AskAiCard';
 import {
   CATEGORY_LABELS,
   PriorityBadge,
@@ -720,6 +721,8 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                   onGenerate={() => summarize.mutate()}
                   onUseReply={applyDraftReply}
                 />
+
+                <AskAiCard onUseReply={applyDraftReply} />
               </>
             ) : (
               <section aria-labelledby="details-heading" className={cardClasses}>

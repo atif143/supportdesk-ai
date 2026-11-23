@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { api, setLoginToken } from './api';
+import { ArticlePage } from './pages/ArticlePage';
+import { ArticlesPage } from './pages/ArticlesPage';
 import { LoginPage } from './pages/LoginPage';
 import { NewTicketPage } from './pages/NewTicketPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -79,6 +81,23 @@ export function App() {
       <Route
         path="/tickets/:id"
         element={user ? <TicketDetailPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
+      />
+      {/* The knowledge base list is for admins. One article can be read by agents and admins. */}
+      <Route
+        path="/articles"
+        element={
+          user?.role === 'admin' ? <ArticlesPage user={user} onLogout={logout} /> : <Navigate to="/" />
+        }
+      />
+      <Route
+        path="/articles/:id"
+        element={
+          user && user.role !== 'customer' ? (
+            <ArticlePage user={user} onLogout={logout} />
+          ) : (
+            <Navigate to="/" />
+          )
+        }
       />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       <Route path="/register" element={<RegisterPage />} />

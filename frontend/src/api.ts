@@ -15,9 +15,9 @@ function send(path: string, options: RequestInit) {
   });
 }
 
-// Calls our backend with the login token.
+// Sends a request with the login token.
 // If the token has expired, it gets a new one with the refresh cookie and tries once more.
-export async function api(path: string, options: RequestInit = {}) {
+async function sendWithLogin(path: string, options: RequestInit) {
   let response = await send(path, options);
 
   if (response.status === 401) {
@@ -29,6 +29,13 @@ export async function api(path: string, options: RequestInit = {}) {
     }
   }
 
+  return response;
+}
+
+// Calls our backend and returns the JSON answer
+export async function api(path: string, options: RequestInit = {}) {
+  const response = await sendWithLogin(path, options);
+
   // If the answer is not JSON (for example the server is down), use an empty object
   const data = await response.json().catch(() => ({}));
 
@@ -37,4 +44,17 @@ export async function api(path: string, options: RequestInit = {}) {
   }
 
   return data;
+}
+
+// Calls our backend for a streamed answer. Returns the response itself,
+// so the caller can read it piece by piece with response.body.getReader().
+export async function apiStream(path: string, options: RequestInit = {}) {
+  const response = await sendWithLogin(path, options);
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || 'Something went wrong');
+  }
+
+  return response;
 }

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { User } from '../App';
 import { Brand } from './Brand';
 import { LogOutIcon } from './icons';
@@ -18,7 +18,23 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+// A link in the top menu. The page you are on is shown with a grey background.
+function NavLink({ to, active, children }: { to: string; active: boolean; children: string }) {
+  return (
+    <Link
+      to={to}
+      aria-current={active ? 'page' : undefined}
+      className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+        active ? 'bg-stone-100 text-zinc-900' : 'text-zinc-600 hover:bg-stone-100 hover:text-zinc-900'
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function AppHeader({ user, onLogout }: AppHeaderProps) {
+  const onArticles = useLocation().pathname.startsWith('/articles');
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -31,14 +47,15 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
             <Brand />
           </Link>
 
-          <nav className="hidden sm:flex">
-            <Link
-              to="/"
-              aria-current="page"
-              className="rounded-md bg-stone-100 px-3 py-1.5 text-[13px] font-medium text-zinc-900"
-            >
+          <nav className="hidden gap-1 sm:flex">
+            <NavLink to="/" active={!onArticles}>
               Tickets
-            </Link>
+            </NavLink>
+            {user.role === 'admin' && (
+              <NavLink to="/articles" active={onArticles}>
+                Knowledge base
+              </NavLink>
+            )}
           </nav>
         </div>
 
