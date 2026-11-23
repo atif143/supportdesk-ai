@@ -1,64 +1,120 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { AuthAlert } from '../components/AuthAlert';
+import { AuthCardHeader } from '../components/AuthCardHeader';
+import { AuthLayout } from '../components/AuthLayout';
+import { AuthSubmitButton } from '../components/AuthSubmitButton';
+import { AuthSwitch } from '../components/AuthSwitch';
+import { TextField } from '../components/TextField';
 
 export function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault(); // stop the page from reloading
     setError('');
+    setConfirmError('');
 
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-      setError(data.error);
+    if (password !== confirmPassword) {
+      setConfirmError('Passwords do not match');
       return;
     }
 
-    navigate('/login');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data.error || 'We could not create your account. Please try again.');
+        return;
+      }
+
+      navigate('/login', { state: { registered: true } });
+    } catch {
+      setError('We could not reach the server. Check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Create an account</h1>
+    <AuthLayout>
+      <AuthCardHeader
+        title="Create account"
+        subtitle="Submit and track your support requests in one place."
+      />
 
-      {error && <p role="alert">{error}</p>}
+      <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+        {error && <AuthAlert>{error}</AuthAlert>}
 
-      <label>
-        Name
-        <input value={name} onChange={(e) => setName(e.target.value)} required />
-      </label>
+        <TextField
+          id="register-name"
+          label="Full name"
+          value={name}
+          onChange={setName}
+          placeholder="Alex Morgan"
+          autoComplete="name"
+          disabled={submitting}
+        />
 
-      <label>
-        Email
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </label>
+        <TextField
+          id="register-email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="you@company.com"
+          autoComplete="email"
+          disabled={submitting}
+        />
 
-      <label>
-        Password
-        <input
+        <TextField
+          id="register-password"
+          label="Password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(value) => {
+            setPassword(value);
+            setConfirmError('');
+          }}
+          placeholder="At least 8 characters"
+          autoComplete="new-password"
           minLength={8}
-          required
+          disabled={submitting}
         />
-      </label>
 
-      <button type="submit">Register</button>
+        <TextField
+          id="register-confirm-password"
+          label="Confirm password"
+          type="password"
+          value={confirmPassword}
+          onChange={(value) => {
+            setConfirmPassword(value);
+            setConfirmError('');
+          }}
+          placeholder="Re-enter your password"
+          autoComplete="new-password"
+          error={confirmError}
+          disabled={submitting}
+        />
 
-      <p>
-        Already have an account? <Link to="/login">Log in</Link>
-      </p>
-    </form>
+        <AuthSubmitButton busy={submitting} label="Create account" busyLabel="Creating account…" />
+      </form>
+
+      <AuthSwitch prompt="Already have an account?" linkText="Sign in" to="/login" />
+    </AuthLayout>
   );
 }

@@ -25,15 +25,19 @@ export function App() {
   // When the website opens, use the refresh cookie to log the user back in
   useEffect(() => {
     async function restoreLogin() {
-      const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST' });
+      try {
+        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST' });
 
-      if (refreshResponse.ok) {
-        const { token } = await refreshResponse.json();
-        setLoginToken(token);
-        setUser(await api('/auth/me'));
+        if (refreshResponse.ok) {
+          const { token } = await refreshResponse.json();
+          setLoginToken(token);
+          setUser(await api('/auth/me'));
+        }
+      } catch {
+        // The server may be unavailable. Show the login page instead of hanging.
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     restoreLogin();
@@ -47,7 +51,17 @@ export function App() {
   }
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex min-h-svh items-center justify-center bg-white">
+        <div className="flex items-center gap-3 text-sm text-zinc-600">
+          <span
+            aria-hidden="true"
+            className="size-4 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900"
+          />
+          Loading…
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -56,10 +70,15 @@ export function App() {
         path="/"
         element={user ? <TicketsPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
       />
-      <Route path="/tickets/new" element={user ? <NewTicketPage /> : <Navigate to="/login" />} />
+      <Route
+        path="/tickets/new"
+        element={
+          user ? <NewTicketPage user={user} onLogout={logout} /> : <Navigate to="/login" />
+        }
+      />
       <Route
         path="/tickets/:id"
-        element={user ? <TicketDetailPage user={user} /> : <Navigate to="/login" />}
+        element={user ? <TicketDetailPage user={user} onLogout={logout} /> : <Navigate to="/login" />}
       />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       <Route path="/register" element={<RegisterPage />} />

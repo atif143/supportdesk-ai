@@ -1,62 +1,206 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { User } from '../App';
+import { AppLayout } from '../components/AppLayout';
+import { AlertIcon, ArrowLeftIcon } from '../components/icons';
 
-export function NewTicketPage() {
+type FieldErrors = {
+  title?: string;
+  description?: string;
+};
+
+const TITLE_LIMIT = 120;
+const DESCRIPTION_LIMIT = 5000;
+
+const labelClasses = 'mb-2 flex items-baseline justify-between gap-3 text-[13px] font-medium text-zinc-700';
+const counterClasses = 'text-[11px] font-normal tabular-nums text-zinc-500';
+
+function controlClasses(hasError: boolean) {
+  return `w-full rounded-lg border px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 ${
+    hasError
+      ? 'border-red-300 bg-red-50/40 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/10'
+      : 'border-zinc-300 bg-stone-50 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10'
+  }`;
+}
+
+export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError('');
-    setSuccess(false);
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const nextErrors: FieldErrors = {};
+
+    if (!trimmedTitle) nextErrors.title = 'Give your ticket a short title.';
+    if (!trimmedDescription) nextErrors.description = 'Describe the problem so we can help.';
+
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      // Put the cursor in the first field that needs attention.
+      (nextErrors.title ? titleRef : descriptionRef).current?.focus();
+      return;
+    }
+
     setSending(true);
 
     try {
-      await api('/tickets', {
+      const ticket = await api('/tickets', {
         method: 'POST',
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({ title: trimmedTitle, description: trimmedDescription }),
       });
-      setSuccess(true);
-      setTitle('');
-      setDescription('');
       queryClient.invalidateQueries({ queryKey: ['tickets'] }); // the list must load again
+      navigate(`/tickets/${ticket.id}`); // show the ticket we just created
     } catch (err) {
       setError((err as Error).message);
+      setSending(false);
     }
-
-    setSending(false);
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <p>
-        <Link to="/">Back to tickets</Link>
-      </p>
+    <AppLayout user={user} onLogout={onLogout}>
+      <div className="mx-auto w-full max-w-2xl">
+        <Link
+          to="/"
+          className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        >
+          <ArrowLeftIcon className="size-4" />
+          Back to tickets
+        </Link>
 
-      <h1>New ticket</h1>
+        <div className="mt-4">
+          <h1 className="text-2xl font-semibold tracking-[-0.025em] text-zinc-900">New ticket</h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            Tell us what happened and include anything you have already tried.
+          </p>
+        </div>
 
-      {success && <p role="status">Your ticket was created.</p>}
-      {error && <p role="alert">{error}</p>}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-[0_1px_2px_rgba(24,24,27,0.04)] sm:p-6"
+        >
+          {error && (
+            <div
+              role="alert"
+              className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3.5"
+            >
+              <AlertIcon className="mt-px size-5 shrink-0 text-red-600" />
+              <div>
+                <p className="text-sm font-medium text-red-800">Could not create the ticket</p>
+                <p className="mt-0.5 text-[13px] text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
 
-      <label>
-        Title
-        <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-      </label>
+          <div className="space-y-5">
+            <div>
+              <label htmlFor="ticket-title" className={labelClasses}>
+                Title
+                <span aria-hidden="true" className={counterClasses}>
+                  {title.length}/{TITLE_LIMIT}
+                </span>
+              </label>
+              <input
+                id="ticket-title"
+                ref={titleRef}
+                value={title}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  if (fieldErrors.title) setFieldErrors((current) => ({ ...current, title: undefined }));
+                }}
+                maxLength={TITLE_LIMIT}
+                placeholder="A short summary of the problem"
+                aria-invalid={fieldErrors.title ? true : undefined}
+                aria-describedby={fieldErrors.title ? 'ticket-title-error' : undefined}
+                disabled={sending}
+                className={`h-11 ${controlClasses(Boolean(fieldErrors.title))}`}
+              />
+              {fieldErrors.title && (
+                <p id="ticket-title-error" className="mt-1.5 text-xs leading-snug text-red-600">
+                  {fieldErrors.title}
+                </p>
+              )}
+            </div>
 
-      <label>
-        Describe your problem
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
-      </label>
+            <div>
+              <label htmlFor="ticket-description" className={labelClasses}>
+                Description
+                <span aria-hidden="true" className={counterClasses}>
+                  {description.length}/{DESCRIPTION_LIMIT}
+                </span>
+              </label>
+              <textarea
+                id="ticket-description"
+                ref={descriptionRef}
+                value={description}
+                onChange={(event) => {
+                  setDescription(event.target.value);
+                  if (fieldErrors.description) {
+                    setFieldErrors((current) => ({ ...current, description: undefined }));
+                  }
+                }}
+                rows={8}
+                maxLength={DESCRIPTION_LIMIT}
+                placeholder="What were you doing when it happened? What did you expect instead?"
+                aria-invalid={fieldErrors.description ? true : undefined}
+                aria-describedby={
+                  fieldErrors.description ? 'ticket-description-error' : 'ticket-description-hint'
+                }
+                disabled={sending}
+                className={`resize-y ${controlClasses(Boolean(fieldErrors.description))}`}
+              />
+              {fieldErrors.description ? (
+                <p id="ticket-description-error" className="mt-1.5 text-xs leading-snug text-red-600">
+                  {fieldErrors.description}
+                </p>
+              ) : (
+                <p id="ticket-description-hint" className="mt-1.5 text-xs leading-snug text-zinc-500">
+                  Screenshots or error messages can be added as a comment once the ticket exists.
+                </p>
+              )}
+            </div>
+          </div>
 
-      <button type="submit" disabled={sending}>
-        {sending ? 'Sending...' : 'Create ticket'}
-      </button>
-    </form>
+          <div className="mt-6 flex flex-col gap-2 border-t border-zinc-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-zinc-500">We usually reply within one business day.</p>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Link
+                to="/"
+                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={sending}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
+              >
+                {sending && (
+                  <span
+                    aria-hidden="true"
+                    className="size-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  />
+                )}
+                {sending ? 'Creating…' : 'Create ticket'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </AppLayout>
   );
 }
