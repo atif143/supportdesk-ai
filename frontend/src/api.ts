@@ -51,9 +51,16 @@ export async function api(path: string, options: RequestInit = {}) {
   return data;
 }
 
-// Calls our backend for a streamed answer. Returns the response itself,
-// so the caller can read it piece by piece with response.body.getReader().
-export async function apiStream(path: string, options: RequestInit = {}) {
+// Calls our backend for a streamed answer (the AI answer that arrives word by word).
+// For every event that arrives, it calls onEvent(name, data), for example ("text", "Hello").
+// The server sends each event like this, with an empty line after it:
+//   event: text
+//   data: "some words"
+export async function apiStream(
+  path: string,
+  options: RequestInit,
+  onEvent: (name: string, data: any) => void,
+) {
   const response = await sendWithLogin(path, options);
 
   if (!response.ok) {
@@ -61,5 +68,24 @@ export async function apiStream(path: string, options: RequestInit = {}) {
     throw new Error(data.error || 'Something went wrong');
   }
 
-  return response;
+  // Read the answer piece by piece
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      return;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split('\n\n');
+    buffer = events.pop() || ''; // the last event may not be complete yet
+
+    for (const event of events) {
+      const [eventLine, dataLine] = event.split('\n');
+      onEvent(eventLine.replace('event: ', ''), JSON.parse(dataLine.replace('data: ', '')));
+    }
+  }
 }

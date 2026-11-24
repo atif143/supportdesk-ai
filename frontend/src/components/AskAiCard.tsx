@@ -49,46 +49,20 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
     controllerRef.current = controller;
 
     try {
-      const response = await apiStream('/kb/ask', {
-        method: 'POST',
-        body: JSON.stringify({ question }),
-        signal: controller.signal,
+      const options = { method: 'POST', body: JSON.stringify({ question }), signal: controller.signal };
+
+      // Each event from the server: a piece of the answer, the sources, or an error
+      await apiStream('/kb/ask', options, (name, data) => {
+        if (name === 'text') {
+          setAnswer((current) => current + data);
+        }
+        if (name === 'sources') {
+          setSources(data);
+        }
+        if (name === 'error') {
+          setError(data.error);
+        }
       });
-
-      // Read the answer piece by piece. Each event looks like:
-      //   event: text
-      //   data: "some words"
-      //   (empty line)
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() || ''; // the last event may not be complete yet
-
-        for (const block of events) {
-          const [eventLine, dataLine] = block.split('\n');
-          const name = eventLine.replace('event: ', '');
-          const data = JSON.parse(dataLine.replace('data: ', ''));
-
-          if (name === 'text') {
-            setAnswer((current) => current + data);
-          }
-          if (name === 'sources') {
-            setSources(data);
-          }
-          if (name === 'error') {
-            setError(data.error);
-          }
-        }
-      }
     } catch (err) {
       // Pressing Stop also ends up here. That is not an error to show.
       if (!controller.signal.aborted) {

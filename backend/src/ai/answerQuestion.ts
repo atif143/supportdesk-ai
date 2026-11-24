@@ -41,14 +41,15 @@ type Source = {
 // Returns null when no article is close enough. Then the answer is "I don't know"
 // and we do not call the AI at all (saves money).
 export async function prepareAnswer(question: string, userId: string) {
-  // 1. Find the chunks that match the question, and keep only the close ones.
-  //    The search returns the best chunk first.
+  // 1. Find the chunks that match the question. The search returns the best one first.
   const found = await searchChunks(question, TOP_K, userId);
-  const best = found.length > 0 ? Number(found[0].similarity) : 0;
-  const chunks = found.filter(
-    (chunk) =>
-      Number(chunk.similarity) >= MIN_SIMILARITY && Number(chunk.similarity) >= best - MAX_GAP_FROM_BEST,
-  );
+  if (found.length === 0) {
+    return null;
+  }
+
+  // Keep only the good ones: above our minimum line AND close to the best chunk
+  const minScore = Math.max(MIN_SIMILARITY, found[0].similarity - MAX_GAP_FROM_BEST);
+  const chunks = found.filter((chunk) => chunk.similarity >= minScore);
 
   if (chunks.length === 0) {
     return null;

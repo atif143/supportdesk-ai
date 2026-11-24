@@ -216,6 +216,12 @@ async function* geminiStream(input: AiInput, signal: AbortSignal) {
         continue;
       }
       const data = JSON.parse(line.slice(5));
+
+      // Gemini can send an error in the middle of an answer, for example 503 "high demand"
+      if (data.error) {
+        throw new Error(`Gemini error: ${data.error.code}`);
+      }
+
       const parts: { text?: string }[] = data.candidates?.[0]?.content?.parts || [];
       if (data.candidates?.[0]?.finishReason) {
         finished = true;
