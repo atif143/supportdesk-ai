@@ -42,6 +42,13 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   const user: LoginData = socket.data.user;
 
+  // For the ticket list: staff hear about every ticket, a customer only about their own
+  if (user.role === 'customer') {
+    socket.join(`user:${user.userId}`);
+  } else {
+    socket.join('staff');
+  }
+
   // 2. The page asks to follow a ticket. We use the same check as the API,
   //    so a customer can only follow their own tickets.
   // "answer" (optional) tells the page if it worked.
@@ -91,4 +98,15 @@ export function sendTicketChangedForStaff(ticketId: string) {
 export function sendCommentAdded(ticketId: string, visibility: string) {
   const room = visibility === 'internal' ? staffRoom(ticketId) : ticketRoom(ticketId);
   io.to(room).emit('comment:added', { ticketId });
+}
+
+// A ticket was created or its fields changed, so ticket lists are out of date.
+// All staff reload their list, and so does the customer who owns the ticket.
+export function sendTicketListChanged(requesterId: string) {
+  io.to('staff').to(`user:${requesterId}`).emit('tickets:changed');
+}
+
+// A change only staff can see in the list (the AI "Needs review" badge)
+export function sendTicketListChangedForStaff() {
+  io.to('staff').emit('tickets:changed');
 }

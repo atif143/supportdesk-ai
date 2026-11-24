@@ -24,6 +24,7 @@ import {
   STATUS_OPTIONS,
   StatusBadge,
 } from '../components/TicketBadges';
+import { useTicketListUpdates } from '../socket';
 import { cardClasses, formatDate } from '../utils';
 
 type Ticket = {
@@ -119,6 +120,9 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
   if (priority) params.set('priority', priority);
   if (category) params.set('category', category);
   if (search) params.set('search', search);
+
+  // Real-time: when any ticket is created or changed, load the list again
+  useTicketListUpdates();
 
   // Load the tickets. It loads again by itself when the page or a filter changes.
   const { data, isLoading, isFetching, error, refetch } = useQuery({

@@ -2,7 +2,7 @@ import { Ticket } from '../models/ticket';
 import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
 import { askAi } from './askAi';
 import { readJson } from './readJson';
-import { sendTicketChangedForStaff } from '../realtime';
+import { sendTicketChangedForStaff, sendTicketListChangedForStaff } from '../realtime';
 
 // The prompt, with a name and a version, so we can see which prompt made which answer
 const CLASSIFY_PROMPT = {
@@ -60,6 +60,7 @@ export async function classifyTicket(ticketId: string) {
         });
         await ticket.save();
         sendTicketChangedForStaff(ticketId); // the AI suggestion is only for staff
+        sendTicketListChangedForStaff();
         return;
       }
     } catch (error) {
@@ -76,4 +77,5 @@ export async function classifyTicket(ticketId: string) {
   });
   await ticket.save();
   sendTicketChangedForStaff(ticketId);
+  sendTicketListChangedForStaff();
 }

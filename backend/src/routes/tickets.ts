@@ -7,7 +7,7 @@ import { User } from '../models/user';
 import { findTicketForUser } from '../utils/findTicketForUser';
 import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
 import { classifyTicket } from '../ai/classifyTicket';
-import { sendTicketChanged } from '../realtime';
+import { sendTicketChanged, sendTicketListChanged } from '../realtime';
 
 export const ticketsRouter = Router();
 
@@ -43,6 +43,9 @@ ticketsRouter.post('/', requireLogin, async (req, res) => {
   });
 
   res.status(201).json(ticket);
+
+  // A new ticket: ticket lists are out of date (real-time update)
+  sendTicketListChanged(res.locals.user.userId);
 
   // Ask the AI for a category and priority in the background.
   // No "await": the user gets the answer above right away, even if the AI is slow or down.
@@ -191,6 +194,7 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
   await ticket.save();
   res.json(ticket);
 
-  // Tell everyone who has this ticket open (real-time update)
+  // Tell everyone who has this ticket open, and everyone who shows it in a list (real-time update)
   sendTicketChanged(ticket.get('id') as string);
+  sendTicketListChanged(ticket.get('requesterId') as string);
 });

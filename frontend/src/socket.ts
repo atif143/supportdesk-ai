@@ -60,3 +60,19 @@ export function useTicketUpdates(ticketId: string | undefined) {
     };
   }, [ticketId, queryClient]);
 }
+
+// Use this on the ticket list: when a ticket is created or changed, load the list again
+export function useTicketListUpdates() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    function reloadList() {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    }
+
+    socket.on('tickets:changed', reloadList);
+    return () => {
+      socket.off('tickets:changed', reloadList);
+    };
+  }, [queryClient]);
+}
