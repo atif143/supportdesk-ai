@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { api, setLoginToken } from './api';
+import { socket } from './socket';
 import { ArticlePage } from './pages/ArticlePage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { LoginPage } from './pages/LoginPage';
@@ -44,6 +45,15 @@ export function App() {
 
     restoreLogin();
   }, []);
+
+  // Real-time updates: open the WebSocket connection after login, close it on logout
+  useEffect(() => {
+    if (user) {
+      socket.connect();
+    } else {
+      socket.disconnect();
+    }
+  }, [user]);
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });

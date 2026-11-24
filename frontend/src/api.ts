@@ -5,6 +5,11 @@ export function setLoginToken(token: string) {
   loginToken = token;
 }
 
+// The real-time connection (socket.ts) sends the token when it connects
+export function getLoginToken() {
+  return loginToken;
+}
+
 function send(path: string, options: RequestInit) {
   return fetch('/api' + path, {
     ...options,

@@ -44,11 +44,12 @@ io.on('connection', (socket) => {
 
   // 2. The page asks to follow a ticket. We use the same check as the API,
   //    so a customer can only follow their own tickets.
-  socket.on('ticket:join', async (ticketId: string, answer: (ok: boolean) => void) => {
+  // "answer" (optional) tells the page if it worked.
+  socket.on('ticket:join', async (ticketId: string, answer?: (ok: boolean) => void) => {
     try {
       const ticket = await findTicketForUser(ticketId, user.userId, user.role);
       if (!ticket) {
-        answer(false);
+        answer?.(false);
         return;
       }
 
@@ -56,9 +57,9 @@ io.on('connection', (socket) => {
       if (user.role !== 'customer') {
         socket.join(staffRoom(ticketId));
       }
-      answer(true);
+      answer?.(true);
     } catch (error) {
-      answer(false); // for example a broken ticket id
+      answer?.(false); // for example a broken ticket id
     }
   });
 

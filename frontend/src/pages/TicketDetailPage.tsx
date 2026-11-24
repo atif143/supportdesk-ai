@@ -19,6 +19,7 @@ import {
 import { BackLink } from '../components/BackLink';
 import { ErrorBox } from '../components/ErrorBox';
 import { AlertIcon, CheckIcon, ChevronDownIcon, ClockIcon, MessageIcon } from '../components/icons';
+import { useTicketUpdates } from '../socket';
 import { cardClasses, formatDateTime, initials } from '../utils';
 
 type Comment = {
@@ -148,6 +149,9 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
   const isStaff = user.role !== 'customer';
+
+  // Real-time: when someone else changes this ticket or adds a comment, show it at once
+  useTicketUpdates(id);
 
   // Load the ticket and its comments
   const ticketQuery = useQuery({
