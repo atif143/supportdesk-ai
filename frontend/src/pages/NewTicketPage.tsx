@@ -6,6 +6,7 @@ import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
 import { BackLink } from '../components/BackLink';
 import { ErrorBox } from '../components/ErrorBox';
+import { primaryButtonClasses } from '../utils';
 
 type FieldErrors = {
   title?: string;
@@ -51,7 +52,11 @@ export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => 
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       // Put the cursor in the first field that needs attention.
-      (nextErrors.title ? titleRef : descriptionRef).current?.focus();
+      if (nextErrors.title) {
+        titleRef.current?.focus();
+      } else {
+        descriptionRef.current?.focus();
+      }
       return;
     }
 
@@ -171,7 +176,7 @@ export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => 
               <button
                 type="submit"
                 disabled={sending}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
+                className={`${primaryButtonClasses} disabled:cursor-not-allowed disabled:bg-zinc-700`}
               >
                 {sending ? 'Creating…' : 'Create ticket'}
               </button>

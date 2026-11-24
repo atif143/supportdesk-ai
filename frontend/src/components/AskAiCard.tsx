@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiStream } from '../api';
-import { cardClasses } from '../utils';
+import { cardClasses, secondaryButtonClasses } from '../utils';
 import { ErrorBox } from './ErrorBox';
 import { AlertIcon, MessageIcon, SendIcon, XIcon } from './icons';
 
@@ -143,7 +143,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
             <button
               type="button"
               onClick={handleStop}
-              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              className={`${secondaryButtonClasses} mt-2.5 w-full`}
             >
               <XIcon className="size-4" />
               Stop
@@ -195,7 +195,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
               <button
                 type="button"
                 onClick={() => onUseReply(plainText(answer))}
-                className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                className={`${secondaryButtonClasses} mt-3 w-full`}
               >
                 <MessageIcon className="size-4" />
                 Use in reply

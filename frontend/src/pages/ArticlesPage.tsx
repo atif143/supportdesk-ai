@@ -6,7 +6,7 @@ import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
 import { ErrorBox } from '../components/ErrorBox';
 import { PlusIcon } from '../components/icons';
-import { cardClasses, formatDate } from '../utils';
+import { cardClasses, formatDate, primaryButtonClasses } from '../utils';
 
 type ArticleRow = {
   id: string;
@@ -117,7 +117,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
             <button
               type="button"
               onClick={openNew}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              className={`${primaryButtonClasses} shrink-0`}
             >
               <PlusIcon className="size-4" />
               New article
@@ -183,7 +183,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
               <button
                 type="submit"
                 disabled={saveArticle.isPending}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
+                className={`${primaryButtonClasses} disabled:cursor-not-allowed disabled:bg-zinc-700`}
               >
                 {saveArticle.isPending ? 'Saving and preparing for AI…' : 'Save article'}
               </button>

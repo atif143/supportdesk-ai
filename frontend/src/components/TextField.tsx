@@ -32,9 +32,19 @@ export function TextField({
   const isPassword = type === 'password';
   const inputType = isPassword && visible ? 'text' : type;
 
-  // Point the screen reader at the hint or the error under the input.
-  const describedBy =
-    [hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined;
+  // Point the screen reader at the text under the input.
+  // Only one is shown at a time: the error if there is one, else the hint.
+  let describedBy: string | undefined;
+  if (error) {
+    describedBy = `${id}-error`;
+  } else if (hint) {
+    describedBy = `${id}-hint`;
+  }
+
+  const paddingClasses = isPassword ? 'pl-3 pr-16' : 'px-3';
+  const colourClasses = error
+    ? 'border-red-300 bg-red-50/40 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/10'
+    : 'border-zinc-300 bg-stone-50 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10';
 
   return (
     <div>
@@ -55,13 +65,7 @@ export function TextField({
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`h-11 w-full rounded-lg border text-sm text-zinc-900 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-70 ${
-            isPassword ? 'pl-3 pr-16' : 'px-3'
-          } ${
-            error
-              ? 'border-red-300 bg-red-50/40 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/10'
-              : 'border-zinc-300 bg-stone-50 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10'
-          }`}
+          className={`h-11 w-full rounded-lg border text-sm text-zinc-900 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-70 ${paddingClasses} ${colourClasses}`}
         />
 
         {isPassword && (
@@ -78,16 +82,16 @@ export function TextField({
         )}
       </div>
 
-      {error ? (
+      {error && (
         <p id={`${id}-error`} className="mt-1.5 text-xs leading-snug text-red-600">
           {error}
         </p>
-      ) : (
-        hint && (
-          <p id={`${id}-hint`} className="mt-1.5 text-xs leading-snug text-zinc-400">
-            {hint}
-          </p>
-        )
+      )}
+
+      {!error && hint && (
+        <p id={`${id}-hint`} className="mt-1.5 text-xs leading-snug text-zinc-400">
+          {hint}
+        </p>
       )}
     </div>
   );

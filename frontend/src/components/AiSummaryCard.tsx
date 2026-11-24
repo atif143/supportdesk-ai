@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { cardClasses } from '../utils';
+import { useState } from 'react';
+import { cardClasses, secondaryButtonClasses } from '../utils';
 import { ErrorBox } from './ErrorBox';
 import { AlertIcon, CheckIcon, CopyIcon, MessageIcon } from './icons';
 
-export type AiSummary = {
+type AiSummary = {
   summary: string;
   problem: string;
   sentiment: string;
@@ -25,9 +25,6 @@ const MOODS: Record<string, { label: string; badge: string; dot: string }> = {
   negative: { label: 'Negative', badge: 'border-amber-200 bg-amber-50 text-amber-800', dot: 'bg-amber-500' },
 };
 
-const secondaryButton =
-  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900';
-
 export function AiSummaryCard({
   data,
   error,
@@ -36,16 +33,13 @@ export function AiSummaryCard({
   onUseReply,
 }: AiSummaryCardProps) {
   const [copied, setCopied] = useState(false);
-  const copyTimer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
-
+  // Copy the draft reply, show "Copied" for 2 seconds, then show "Copy" again
   async function copyReply(reply: string) {
     try {
       await navigator.clipboard.writeText(reply);
       setCopied(true);
-      window.clearTimeout(copyTimer.current);
-      copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
@@ -54,10 +48,7 @@ export function AiSummaryCard({
   const mood = data ? MOODS[data.sentiment] : null;
 
   return (
-    <section
-      aria-labelledby="ai-summary-heading"
-      className={cardClasses}
-    >
+    <section aria-labelledby="ai-summary-heading" className={cardClasses}>
       <div className="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
@@ -162,7 +153,7 @@ export function AiSummaryCard({
               <button
                 type="button"
                 onClick={onGenerate}
-                className={`${secondaryButton} mt-3 w-full`}
+                className={`${secondaryButtonClasses} mt-3 w-full`}
               >
                 Try again
               </button>
@@ -176,7 +167,7 @@ export function AiSummaryCard({
                 <button
                   type="button"
                   onClick={onGenerate}
-                  className={`${secondaryButton} mt-3.5 w-full`}
+                  className={`${secondaryButtonClasses} mt-3.5 w-full`}
                 >
                   Summarize ticket
                 </button>
