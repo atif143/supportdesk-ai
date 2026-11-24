@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiStream } from '../api';
 import { cardClasses, secondaryButtonClasses } from '../utils';
 import { ErrorBox } from './ErrorBox';
-import { AlertIcon, MessageIcon, SendIcon, XIcon } from './icons';
+import { RiChat3Line, RiCloseLine, RiErrorWarningLine, RiSendPlaneLine } from '@remixicon/react';
 
 type Source = {
   articleId: string;
@@ -145,7 +145,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
               onClick={handleStop}
               className={`${secondaryButtonClasses} mt-2.5 w-full`}
             >
-              <XIcon className="size-4" />
+              <RiCloseLine className="size-4" />
               Stop
             </button>
           ) : (
@@ -154,7 +154,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
               disabled={!question.trim()}
               className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <SendIcon className="size-4" />
+              <RiSendPlaneLine className="size-4" />
               Ask
             </button>
           )}
@@ -197,14 +197,14 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
                 onClick={() => onUseReply(plainText(answer))}
                 className={`${secondaryButtonClasses} mt-3 w-full`}
               >
-                <MessageIcon className="size-4" />
+                <RiChat3Line className="size-4" />
                 Use in reply
               </button>
             )}
 
             {!streaming && (
               <p className="mt-4 flex items-start gap-1.5 border-t border-zinc-100 pt-3 text-[11px] leading-relaxed text-zinc-500">
-                <AlertIcon className="mt-px size-3.5 shrink-0 text-zinc-400" />
+                <RiErrorWarningLine className="mt-px size-3.5 shrink-0 text-zinc-400" />
                 AI-generated answer from help articles. Check it before sending.
               </p>
             )}

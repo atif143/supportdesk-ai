@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { User } from '../App';
 import { Brand } from './Brand';
 import { initials } from '../utils';
-import { LogOutIcon } from './icons';
+import { RiLogoutBoxRLine } from '@remixicon/react';
 
 type AppHeaderProps = {
   user: User;
@@ -68,7 +68,7 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
             onClick={onLogout}
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
           >
-            <LogOutIcon className="size-4" />
+            <RiLogoutBoxRLine className="size-4" />
             <span className="hidden sm:inline">Log out</span>
             <span className="sr-only sm:hidden">Log out</span>
           </button>

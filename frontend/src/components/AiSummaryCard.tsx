@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cardClasses, secondaryButtonClasses } from '../utils';
 import { ErrorBox } from './ErrorBox';
-import { AlertIcon, CheckIcon, CopyIcon, MessageIcon } from './icons';
+import { RiChat3Line, RiCheckLine, RiErrorWarningLine, RiFileCopyLine } from '@remixicon/react';
 
 type AiSummary = {
   summary: string;
@@ -122,9 +122,9 @@ export function AiSummaryCard({
                       className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-zinc-900"
                     >
                       {copied ? (
-                        <CheckIcon className="size-3.5 text-emerald-600" />
+                        <RiCheckLine className="size-3.5 text-emerald-600" />
                       ) : (
-                        <CopyIcon className="size-3.5" />
+                        <RiFileCopyLine className="size-3.5" />
                       )}
                       {copied ? 'Copied' : 'Copy'}
                     </button>
@@ -139,13 +139,13 @@ export function AiSummaryCard({
                     onClick={() => onUseReply(data.draftReply)}
                     className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
                   >
-                    <MessageIcon className="size-4" />
+                    <RiChat3Line className="size-4" />
                     Use this reply
                   </button>
                 </div>
 
                 <p className="mt-4 flex items-start gap-1.5 border-t border-zinc-100 pt-3 text-[11px] leading-relaxed text-zinc-500">
-                  <AlertIcon className="mt-px size-3.5 shrink-0 text-zinc-400" />
+                  <RiErrorWarningLine className="mt-px size-3.5 shrink-0 text-zinc-400" />
                   Generated automatically. Check the details before sending.
                 </p>
               </div>

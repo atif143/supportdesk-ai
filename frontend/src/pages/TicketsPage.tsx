@@ -4,14 +4,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
-import {
-  AlertIcon,
-  ChevronDownIcon,
-  PlusIcon,
-  SearchIcon,
-  TicketIcon,
-  XIcon,
-} from '../components/icons';
+import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiErrorWarningLine, RiSearchLine, RiTicket2Line } from '@remixicon/react';
 import { Pagination } from '../components/Pagination';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS, STATUS_OPTIONS } from '../components/TicketBadges';
 import { TicketList, TicketRow } from '../components/TicketList';
@@ -55,7 +48,7 @@ function FilterSelect({ label, value, options, onChange, className = '' }: Filte
           </option>
         ))}
       </select>
-      <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+      <RiArrowDownSLine className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
     </div>
   );
 }
@@ -148,7 +141,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
         </div>
 
         <Link to="/tickets/new" className={`${primaryButtonClasses} shrink-0`}>
-          <PlusIcon className="size-4" />
+          <RiAddLine className="size-4" />
           New ticket
         </Link>
       </div>
@@ -156,7 +149,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
       <section aria-busy={isLoading} className={`mt-6 ${cardClasses}`}>
         <div className="flex flex-col gap-2.5 border-b border-zinc-200 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:p-5">
           <form role="search" onSubmit={handleSearch} className="relative w-full lg:max-w-xs">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+            <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
             <input
               type="search"
               aria-label="Search tickets"
@@ -172,7 +165,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 aria-label="Clear search"
                 className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded text-zinc-400 hover:bg-stone-100 hover:text-zinc-700"
               >
-                <XIcon className="size-3.5" />
+                <RiCloseLine className="size-3.5" />
               </button>
             )}
           </form>
@@ -240,7 +233,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 onClick={clearFilters}
                 className="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 sm:col-auto"
               >
-                <XIcon className="size-3.5" />
+                <RiCloseLine className="size-3.5" />
                 Clear filters
               </button>
             )}
@@ -256,7 +249,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
               className="flex flex-col gap-4 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-start gap-3">
-                <AlertIcon className="mt-0.5 size-5 shrink-0 text-red-600" />
+                <RiErrorWarningLine className="mt-0.5 size-5 shrink-0 text-red-600" />
                 <div>
                   <p className="text-sm font-medium text-red-800">Could not load tickets</p>
                   <p className="mt-0.5 text-[13px] text-red-700">{error.message}</p>
@@ -274,7 +267,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
         ) : tickets.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="grid size-11 place-items-center rounded-full border border-zinc-200 bg-stone-50 text-zinc-400">
-              <TicketIcon className="size-5" />
+              <RiTicket2Line className="size-5" />
             </span>
             <h2 className="mt-4 text-sm font-semibold text-zinc-900">
               {hasFilters ? 'No tickets match your filters' : 'No tickets yet'}

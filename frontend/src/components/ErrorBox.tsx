@@ -1,4 +1,4 @@
-import { AlertIcon } from './icons';
+import { RiErrorWarningLine } from '@remixicon/react';
 
 type ErrorBoxProps = {
   title?: string; // optional bold first line, for example "Could not create the ticket"
@@ -13,7 +13,7 @@ export function ErrorBox({ title, message, className = '' }: ErrorBoxProps) {
       role="alert"
       className={`flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 ${className}`}
     >
-      <AlertIcon className="mt-px size-4 shrink-0 text-red-600" />
+      <RiErrorWarningLine className="mt-px size-4 shrink-0 text-red-600" />
       <div>
         {title && <p className="text-[13px] font-medium text-red-800">{title}</p>}
         <p className="text-[13px] text-red-700">{message}</p>

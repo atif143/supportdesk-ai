@@ -10,7 +10,7 @@ import { AskAiCard } from '../components/AskAiCard';
 import { BackLink } from '../components/BackLink';
 import { Comment, CommentList } from '../components/CommentList';
 import { ErrorBox } from '../components/ErrorBox';
-import { AlertIcon, ClockIcon, MessageIcon } from '../components/icons';
+import { RiChat3Line, RiErrorWarningLine, RiTimeLine } from '@remixicon/react';
 import {
   CATEGORY_LABELS,
   PriorityBadge,
@@ -150,7 +150,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
 
           <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5">
             <div className="flex items-start gap-3">
-              <AlertIcon className="mt-0.5 size-5 shrink-0 text-red-600" />
+              <RiErrorWarningLine className="mt-0.5 size-5 shrink-0 text-red-600" />
               <div>
                 <h1 className="text-sm font-semibold text-red-800">Could not load this ticket</h1>
                 <p className="mt-1 text-[13px] text-red-700">{ticketQuery.error.message}</p>
@@ -200,7 +200,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
 
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-zinc-500">
             <span className="inline-flex items-center gap-1.5">
-              <ClockIcon className="size-3.5" />
+              <RiTimeLine className="size-3.5" />
               Opened <time dateTime={ticket.createdAt}>{formatDateTime(ticket.createdAt)}</time>
             </span>
             <span aria-hidden="true">·</span>
@@ -231,7 +231,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                   id="conversation-heading"
                   className="flex items-center gap-2 text-[13.5px] font-semibold text-zinc-900"
                 >
-                  <MessageIcon className="size-4 text-zinc-500" />
+                  <RiChat3Line className="size-4 text-zinc-500" />
                   Conversation
                 </h2>
                 {comments.length > 0 && (
@@ -290,7 +290,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                     disabled={!body.trim() || sending}
                     className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <MessageIcon className="size-4" />
+                    <RiChat3Line className="size-4" />
                     {sending ? 'Sending…' : 'Add comment'}
                   </button>
                 </div>

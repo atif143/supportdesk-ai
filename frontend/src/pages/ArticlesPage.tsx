@@ -5,7 +5,7 @@ import { api } from '../api';
 import { User } from '../App';
 import { AppLayout } from '../components/AppLayout';
 import { ErrorBox } from '../components/ErrorBox';
-import { PlusIcon } from '../components/icons';
+import { RiAddLine } from '@remixicon/react';
 import { cardClasses, formatDate, primaryButtonClasses } from '../utils';
 
 type ArticleRow = {
@@ -119,7 +119,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
               onClick={openNew}
               className={`${primaryButtonClasses} shrink-0`}
             >
-              <PlusIcon className="size-4" />
+              <RiAddLine className="size-4" />
               New article
             </button>
           )}

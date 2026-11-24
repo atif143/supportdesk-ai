@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Ticket } from '../pages/TicketDetailPage';
 import { cardClasses, cardHeaderClasses } from '../utils';
 import { ErrorBox } from './ErrorBox';
-import { ChevronDownIcon } from './icons';
+import { RiArrowDownSLine } from '@remixicon/react';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS, STATUS_OPTIONS } from './TicketBadges';
 
 type StaffMember = {
@@ -60,7 +60,7 @@ function SelectField({ id, label, value, disabled, onChange, children }: SelectF
         >
           {children}
         </select>
-        <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
+        <RiArrowDownSLine className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
       </div>
     </div>
   );

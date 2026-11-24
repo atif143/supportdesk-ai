@@ -1,6 +1,6 @@
 import { Ticket } from '../pages/TicketDetailPage';
 import { cardClasses, cardHeaderClasses, secondaryButtonClasses } from '../utils';
-import { CheckIcon } from './icons';
+import { RiCheckLine } from '@remixicon/react';
 import { CATEGORY_LABELS, PriorityBadge } from './TicketBadges';
 
 type AiSuggestionCardProps = {
@@ -64,7 +64,7 @@ export function AiSuggestionCard({ ticket, isSaving, onUpdate }: AiSuggestionCar
 
             {applied ? (
               <p className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-700">
-                <CheckIcon className="size-3.5" />
+                <RiCheckLine className="size-3.5" />
                 Applied to this ticket
               </p>
             ) : (
@@ -74,7 +74,7 @@ export function AiSuggestionCard({ ticket, isSaving, onUpdate }: AiSuggestionCar
                 disabled={isSaving}
                 className={`${secondaryButtonClasses} mt-3 w-full disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                <CheckIcon className="size-3.5" />
+                <RiCheckLine className="size-3.5" />
                 Accept suggestion
               </button>
             )}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { formatDate } from '../utils';
-import { ChevronRightIcon } from './icons';
+import { RiArrowRightSLine } from '@remixicon/react';
 import { CATEGORY_LABELS, PriorityBadge, ReviewBadge, shortId, StatusBadge } from './TicketBadges';
 
 export type TicketRow = {
@@ -97,7 +97,7 @@ export function TicketList({ tickets }: { tickets: TicketRow[] }) {
                   {formatDate(ticket.createdAt)}
                 </td>
                 <td className="py-3.5 pl-2 pr-5 text-right">
-                  <ChevronRightIcon className="ml-auto size-4 text-zinc-300 group-hover:text-zinc-500" />
+                  <RiArrowRightSLine className="ml-auto size-4 text-zinc-300 group-hover:text-zinc-500" />
                 </td>
               </tr>
             ))}

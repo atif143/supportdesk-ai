@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
 type PaginationProps = {
   page: number;
@@ -40,7 +40,7 @@ export function Pagination({ page, limit, total, isFetching, onPageChange }: Pag
           disabled={page === 1}
           className={pageButtonClasses}
         >
-          <ChevronLeftIcon className="size-4" />
+          <RiArrowLeftSLine className="size-4" />
           Previous
         </button>
 
@@ -55,7 +55,7 @@ export function Pagination({ page, limit, total, isFetching, onPageChange }: Pag
           className={pageButtonClasses}
         >
           Next
-          <ChevronRightIcon className="size-4" />
+          <RiArrowRightSLine className="size-4" />
         </button>
       </div>
     </div>
