@@ -15,7 +15,7 @@ function NavLink({ to, active, children }: { to: string; active: boolean; childr
     <Link
       to={to}
       aria-current={active ? 'page' : undefined}
-      className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+      className={`rounded-md px-3 py-1.5 text-[13px] font-medium ${
         active ? 'bg-stone-100 text-zinc-900' : 'text-zinc-600 hover:bg-stone-100 hover:text-zinc-900'
       }`}
     >
@@ -66,7 +66,7 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
           <button
             type="button"
             onClick={onLogout}
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
           >
             <LogOutIcon className="size-4" />
             <span className="hidden sm:inline">Log out</span>

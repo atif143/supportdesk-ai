@@ -26,7 +26,7 @@ const MOODS: Record<string, { label: string; badge: string; dot: string }> = {
 };
 
 const secondaryButton =
-  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900';
+  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900';
 
 export function AiSummaryCard({
   data,
@@ -82,24 +82,9 @@ export function AiSummaryCard({
 
       <div className="px-5 py-4" aria-busy={isPending}>
         {isPending ? (
-          <div role="status">
-            <span className="sr-only">Summarizing the ticket…</span>
-            <div aria-hidden="true" className="space-y-2">
-              <div className="h-2.5 w-full animate-pulse rounded bg-stone-200/90" />
-              <div className="h-2.5 w-10/12 animate-pulse rounded bg-stone-200/90" />
-              <div className="h-2.5 w-7/12 animate-pulse rounded bg-stone-200/90" />
-            </div>
-            <div aria-hidden="true" className="mt-4 space-y-2 rounded-lg bg-stone-50 p-3">
-              <div className="h-2 w-20 animate-pulse rounded bg-stone-200" />
-              <div className="h-2.5 w-9/12 animate-pulse rounded bg-stone-200/80" />
-              <div className="h-2 w-24 animate-pulse rounded bg-stone-200" />
-              <div className="h-4 w-20 animate-pulse rounded-full bg-stone-200/80" />
-            </div>
-            <div
-              aria-hidden="true"
-              className="mt-4 h-20 animate-pulse rounded-lg border border-dashed border-zinc-200 bg-stone-50"
-            />
-          </div>
+          <p role="status" className="text-[13px] text-zinc-500">
+            Summarizing the ticket…
+          </p>
         ) : (
           <>
             {error && (
@@ -143,7 +128,7 @@ export function AiSummaryCard({
                     <button
                       type="button"
                       onClick={() => copyReply(data.draftReply)}
-                      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-zinc-900"
+                      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-zinc-900"
                     >
                       {copied ? (
                         <CheckIcon className="size-3.5 text-emerald-600" />
@@ -161,7 +146,7 @@ export function AiSummaryCard({
                   <button
                     type="button"
                     onClick={() => onUseReply(data.draftReply)}
-                    className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                    className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
                   >
                     <MessageIcon className="size-4" />
                     Use this reply

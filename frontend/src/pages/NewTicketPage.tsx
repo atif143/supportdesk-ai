@@ -19,7 +19,7 @@ const labelClasses = 'mb-2 flex items-baseline justify-between gap-3 text-[13px]
 const counterClasses = 'text-[11px] font-normal tabular-nums text-zinc-500';
 
 function controlClasses(hasError: boolean) {
-  return `w-full rounded-lg border px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 ${
+  return `w-full rounded-lg border px-3 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-500 ${
     hasError
       ? 'border-red-300 bg-red-50/40 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/10'
       : 'border-zinc-300 bg-stone-50 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10'
@@ -164,21 +164,15 @@ export function NewTicketPage({ user, onLogout }: { user: User; onLogout: () => 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Link
                 to="/"
-                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={sending}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
               >
-                {sending && (
-                  <span
-                    aria-hidden="true"
-                    className="size-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
-                  />
-                )}
                 {sending ? 'Creating…' : 'Create ticket'}
               </button>
             </div>

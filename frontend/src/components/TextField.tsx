@@ -55,7 +55,7 @@ export function TextField({
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`h-11 w-full rounded-lg border text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-70 ${
+          className={`h-11 w-full rounded-lg border text-sm text-zinc-900 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-70 ${
             isPassword ? 'pl-3 pr-16' : 'px-3'
           } ${
             error
@@ -71,7 +71,7 @@ export function TextField({
             aria-label={visible ? 'Hide password' : 'Show password'}
             aria-pressed={visible}
             disabled={disabled}
-            className="absolute inset-y-0 right-1.5 my-auto grid h-8 w-12 place-items-center rounded-md text-xs font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-zinc-900 disabled:opacity-60"
+            className="absolute inset-y-0 right-1.5 my-auto grid h-8 w-12 place-items-center rounded-md text-xs font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-zinc-900 disabled:opacity-60"
           >
             {visible ? 'Hide' : 'Show'}
           </button>

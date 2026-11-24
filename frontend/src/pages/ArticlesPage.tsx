@@ -18,7 +18,7 @@ const TITLE_LIMIT = 200;
 const BODY_LIMIT = 20000;
 
 const inputClasses =
-  'w-full rounded-lg border border-zinc-300 bg-stone-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60';
+  'w-full rounded-lg border border-zinc-300 bg-stone-50 px-3 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60';
 
 // The knowledge base (admins only): create, edit and delete help articles.
 // The AI assistant answers questions from these articles.
@@ -117,7 +117,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
             <button
               type="button"
               onClick={openNew}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
             >
               <PlusIcon className="size-4" />
               New article
@@ -176,21 +176,15 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
                 type="button"
                 onClick={closeForm}
                 disabled={saveArticle.isPending}
-                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 disabled:opacity-60"
+                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saveArticle.isPending}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-700"
               >
-                {saveArticle.isPending && (
-                  <span
-                    aria-hidden="true"
-                    className="size-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
-                  />
-                )}
                 {saveArticle.isPending ? 'Saving and preparing for AI…' : 'Save article'}
               </button>
             </div>
@@ -231,7 +225,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
                       type="button"
                       onClick={() => openEdit(article.id)}
                       disabled={saveArticle.isPending}
-                      className="h-8 rounded-md px-2.5 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-stone-100 disabled:opacity-50"
+                      className="h-8 rounded-md px-2.5 text-[13px] font-medium text-zinc-700 hover:bg-stone-100 disabled:opacity-50"
                     >
                       Edit
                     </button>
@@ -239,7 +233,7 @@ export function ArticlesPage({ user, onLogout }: { user: User; onLogout: () => v
                       type="button"
                       onClick={() => handleDelete(article)}
                       disabled={deleteArticle.isPending}
-                      className="h-8 rounded-md px-2.5 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
+                      className="h-8 rounded-md px-2.5 text-[13px] font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                     >
                       Delete
                     </button>

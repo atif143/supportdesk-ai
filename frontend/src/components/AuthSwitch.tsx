@@ -12,7 +12,7 @@ export function AuthSwitch({ prompt, linkText, to }: AuthSwitchProps) {
       {prompt}{' '}
       <Link
         to={to}
-        className="rounded font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition-colors hover:decoration-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        className="rounded font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
       >
         {linkText}
       </Link>

@@ -43,7 +43,7 @@ const PRIORITY_FILTERS = [{ value: '', label: 'All priorities' }, ...PRIORITY_OP
 const CATEGORY_FILTERS = [{ value: '', label: 'All categories' }, ...CATEGORY_OPTIONS];
 
 const searchInputClasses =
-  'h-10 w-full rounded-lg border border-zinc-300 bg-white pl-9 pr-9 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10';
+  'h-10 w-full rounded-lg border border-zinc-300 bg-white pl-9 pr-9 text-sm text-zinc-900 outline-none placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10';
 
 type FilterSelectProps = {
   label: string;
@@ -60,7 +60,7 @@ function FilterSelect({ label, value, options, onChange, className = '' }: Filte
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full appearance-none rounded-lg border border-zinc-300 bg-white pl-3 pr-8 text-[13px] text-zinc-700 outline-none transition hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 sm:w-auto"
+        className="h-10 w-full appearance-none rounded-lg border border-zinc-300 bg-white pl-3 pr-8 text-[13px] text-zinc-700 outline-none hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 sm:w-auto"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -69,26 +69,6 @@ function FilterSelect({ label, value, options, onChange, className = '' }: Filte
         ))}
       </select>
       <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
-    </div>
-  );
-}
-
-function TicketSkeleton() {
-  const widths = ['w-1/2', 'w-2/3', 'w-1/3'];
-
-  return (
-    <div aria-hidden="true" className="divide-y divide-zinc-100">
-      {Array.from({ length: 7 }).map((_, index) => (
-        <div key={index} className="flex items-center justify-between gap-4 px-5 py-4">
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className={`h-3.5 animate-pulse rounded bg-stone-200 ${widths[index % widths.length]}`} />
-            <div className="h-2.5 w-24 animate-pulse rounded bg-stone-100" />
-          </div>
-          <div className="h-5 w-16 animate-pulse rounded-full bg-stone-100" />
-          <div className="hidden h-3 w-14 animate-pulse rounded bg-stone-100 lg:block" />
-          <div className="hidden h-3 w-16 animate-pulse rounded bg-stone-100 sm:block" />
-        </div>
-      ))}
     </div>
   );
 }
@@ -174,7 +154,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
 
           <Link
             to="/tickets/new"
-            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
           >
             <PlusIcon className="size-4" />
             New ticket
@@ -201,7 +181,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                   type="button"
                   onClick={clearSearch}
                   aria-label="Clear search"
-                  className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded text-zinc-400 transition-colors hover:bg-stone-100 hover:text-zinc-700"
+                  className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded text-zinc-400 hover:bg-stone-100 hover:text-zinc-700"
                 >
                   <XIcon className="size-3.5" />
                 </button>
@@ -222,7 +202,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                       setOnlyMine(false);
                       setPage(1);
                     }}
-                    className={`h-8 flex-1 rounded-md px-3 text-[13px] font-medium transition sm:flex-none ${
+                    className={`h-8 flex-1 rounded-md px-3 text-[13px] font-medium sm:flex-none ${
                       !onlyMine
                         ? 'bg-white text-zinc-900 shadow-sm'
                         : 'text-zinc-600 hover:text-zinc-900'
@@ -237,7 +217,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                       setOnlyMine(true);
                       setPage(1);
                     }}
-                    className={`h-8 flex-1 rounded-md px-3 text-[13px] font-medium transition sm:flex-none ${
+                    className={`h-8 flex-1 rounded-md px-3 text-[13px] font-medium sm:flex-none ${
                       onlyMine
                         ? 'bg-white text-zinc-900 shadow-sm'
                         : 'text-zinc-600 hover:text-zinc-900'
@@ -283,7 +263,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-medium text-zinc-600 transition-colors hover:bg-stone-100 hover:text-zinc-900 sm:col-auto"
+                  className="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-medium text-zinc-600 hover:bg-stone-100 hover:text-zinc-900 sm:col-auto"
                 >
                   <XIcon className="size-3.5" />
                   Clear filters
@@ -293,7 +273,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
           </div>
 
           {isLoading ? (
-            <TicketSkeleton />
+            <p className="px-5 py-6 text-sm text-zinc-500">Loading tickets…</p>
           ) : error ? (
             <div className="p-5 sm:p-6">
               <div
@@ -310,7 +290,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 <button
                   type="button"
                   onClick={() => refetch()}
-                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-red-300 bg-white px-3 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-100"
+                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-red-300 bg-white px-3 text-[13px] font-medium text-red-700 hover:bg-red-100"
                 >
                   Try again
                 </button>
@@ -335,14 +315,14 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="mt-4 inline-flex h-9 items-center rounded-md border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-stone-50"
+                  className="mt-4 inline-flex h-9 items-center rounded-md border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-700 hover:bg-stone-50"
                 >
                   Clear filters
                 </button>
               ) : (
                 <Link
                   to="/tickets/new"
-                  className="mt-4 inline-flex h-9 items-center rounded-md bg-zinc-900 px-3 text-[13px] font-medium text-white transition-colors hover:bg-zinc-800"
+                  className="mt-4 inline-flex h-9 items-center rounded-md bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800"
                 >
                   New ticket
                 </Link>
@@ -355,7 +335,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                 {tickets.map((ticket) => (
                   <li
                     key={ticket.id}
-                    className="relative p-4 transition-colors active:bg-stone-50"
+                    className="relative p-4 active:bg-stone-50"
                   >
                     <Link
                       to={`/tickets/${ticket.id}`}
@@ -408,7 +388,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                     {tickets.map((ticket) => (
                       <tr
                         key={ticket.id}
-                        className="group relative transition-colors hover:bg-stone-50/80"
+                        className="group relative hover:bg-stone-50/80"
                       >
                         <td className="min-w-0 px-5 py-3.5">
                           <Link
@@ -438,7 +418,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                           {formatDate(ticket.createdAt)}
                         </td>
                         <td className="py-3.5 pl-2 pr-5 text-right">
-                          <ChevronRightIcon className="ml-auto size-4 text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-500" />
+                          <ChevronRightIcon className="ml-auto size-4 text-zinc-300 group-hover:text-zinc-500" />
                         </td>
                       </tr>
                     ))}
@@ -466,7 +446,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                     type="button"
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ChevronLeftIcon className="size-4" />
                     Previous
@@ -480,7 +460,7 @@ export function TicketsPage({ user, onLogout }: { user: User; onLogout: () => vo
                     type="button"
                     onClick={() => setPage(page + 1)}
                     disabled={page >= totalPages}
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Next
                     <ChevronRightIcon className="size-4" />

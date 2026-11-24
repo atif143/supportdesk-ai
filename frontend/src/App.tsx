@@ -65,13 +65,7 @@ export function App() {
   if (loading) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-white">
-        <div className="flex items-center gap-3 text-sm text-zinc-600">
-          <span
-            aria-hidden="true"
-            className="size-4 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900"
-          />
-          Loading…
-        </div>
+        <p className="text-sm text-zinc-600">Loading…</p>
       </div>
     );
   }

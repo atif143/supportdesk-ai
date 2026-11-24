@@ -62,7 +62,7 @@ const NEXT_STATUSES: Record<string, string[]> = {
 
 const cardHeaderClasses = 'border-b border-zinc-100 px-5 py-3.5';
 const selectClasses =
-  'h-9 w-full appearance-none rounded-lg border border-zinc-300 bg-white pl-2.5 pr-8 text-[13px] text-zinc-800 outline-none transition hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:cursor-not-allowed disabled:opacity-60';
+  'h-9 w-full appearance-none rounded-lg border border-zinc-300 bg-white pl-2.5 pr-8 text-[13px] text-zinc-800 outline-none hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:cursor-not-allowed disabled:opacity-60';
 
 function RolePill({ role }: { role: string }) {
   const label = role === 'agent' ? 'Agent' : role === 'admin' ? 'Admin' : 'Customer';
@@ -107,31 +107,6 @@ function SelectField({ id, label, value, disabled, onChange, children }: SelectF
           {children}
         </select>
         <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
-      </div>
-    </div>
-  );
-}
-
-function DetailSkeleton() {
-  return (
-    <div aria-busy="true" aria-label="Loading ticket" className="mx-auto w-full max-w-6xl">
-      <span className="sr-only">Loading ticket…</span>
-      <div aria-hidden="true">
-        <div className="h-4 w-28 animate-pulse rounded bg-stone-200" />
-        <div className="mt-5 h-3 w-32 animate-pulse rounded bg-stone-200/80" />
-        <div className="mt-3 h-7 w-2/3 max-w-md animate-pulse rounded bg-stone-200" />
-        <div className="mt-3 h-3 w-44 animate-pulse rounded bg-stone-200/80" />
-
-        <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-          <div className="space-y-5">
-            <div className="h-36 rounded-xl border border-zinc-200 bg-white" />
-            <div className="h-72 rounded-xl border border-zinc-200 bg-white" />
-          </div>
-          <div className="space-y-5">
-            <div className="h-40 rounded-xl border border-zinc-200 bg-white" />
-            <div className="h-48 rounded-xl border border-zinc-200 bg-white" />
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -235,7 +210,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
   if (ticketQuery.isLoading) {
     return (
       <AppLayout user={user} onLogout={onLogout}>
-        <DetailSkeleton />
+        <p className="text-sm text-zinc-500">Loading ticket…</p>
       </AppLayout>
     );
   }
@@ -255,7 +230,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                 <button
                   type="button"
                   onClick={() => ticketQuery.refetch()}
-                  className="mt-4 inline-flex h-9 items-center rounded-md border border-red-300 bg-white px-3 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-100"
+                  className="mt-4 inline-flex h-9 items-center rounded-md border border-red-300 bg-white px-3 text-[13px] font-medium text-red-700 hover:bg-red-100"
                 >
                   Try again
                 </button>
@@ -347,18 +322,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
               </div>
 
               {commentsQuery.isLoading ? (
-                <div aria-hidden="true" className="space-y-4 px-5 py-5">
-                  {[0, 1].map((index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="size-8 shrink-0 animate-pulse rounded-full bg-stone-200" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-2.5 w-32 animate-pulse rounded bg-stone-200" />
-                        <div className="h-2.5 w-10/12 animate-pulse rounded bg-stone-100" />
-                        <div className="h-2.5 w-7/12 animate-pulse rounded bg-stone-100" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="px-5 py-5 text-[13px] text-zinc-500">Loading comments…</p>
               ) : commentsQuery.error ? (
                 <div className="px-5 py-5">
                   <ErrorBox message={commentsQuery.error.message} />
@@ -442,7 +406,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                         : 'Write a reply to the customer…'
                       : 'Write a message to the support team…'
                   }
-                  className="w-full resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10"
+                  className="w-full resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-900 outline-none placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10"
                 />
 
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -466,7 +430,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                   <button
                     type="submit"
                     disabled={!body.trim() || sending}
-                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <MessageIcon className="size-4" />
                     {sending ? 'Sending…' : 'Add comment'}
@@ -624,7 +588,7 @@ export function TicketDetailPage({ user, onLogout }: { user: User; onLogout: () 
                               })
                             }
                             disabled={updateTicket.isPending}
-                            className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <CheckIcon className="size-3.5" />
                             Accept suggestion

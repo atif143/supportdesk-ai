@@ -136,14 +136,14 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
             maxLength={MAX_QUESTION_LENGTH}
             placeholder="How do customers change their billing email?"
             disabled={streaming}
-            className="w-full resize-y rounded-lg border border-zinc-300 bg-stone-50 px-3 py-2 text-[13px] leading-relaxed text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60"
+            className="w-full resize-y rounded-lg border border-zinc-300 bg-stone-50 px-3 py-2 text-[13px] leading-relaxed text-zinc-900 outline-none placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-900 focus:bg-white focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60"
           />
 
           {streaming ? (
             <button
               type="button"
               onClick={handleStop}
-              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
             >
               <XIcon className="size-4" />
               Stop
@@ -152,7 +152,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
             <button
               type="submit"
               disabled={!question.trim()}
-              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 text-[13px] font-medium text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <SendIcon className="size-4" />
               Ask
@@ -168,7 +168,6 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
             <p className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-zinc-500">Answer</p>
             <p className="mt-1.5 whitespace-pre-wrap text-[13px] leading-relaxed text-zinc-700">
               {plainText(answer)}
-              {streaming && <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-zinc-400 align-middle" />}
             </p>
 
             {stopped && <p className="mt-2 text-[11.5px] text-zinc-500">Stopped. The answer is not complete.</p>}
@@ -196,7 +195,7 @@ export function AskAiCard({ onUseReply }: { onUseReply: (reply: string) => void 
               <button
                 type="button"
                 onClick={() => onUseReply(plainText(answer))}
-                className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-400 hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
               >
                 <MessageIcon className="size-4" />
                 Use in reply
