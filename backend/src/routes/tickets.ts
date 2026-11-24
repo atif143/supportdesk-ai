@@ -7,6 +7,7 @@ import { User } from '../models/user';
 import { findTicketForUser } from '../utils/findTicketForUser';
 import { CATEGORIES, PRIORITIES } from '../utils/ticketOptions';
 import { classifyTicket } from '../ai/classifyTicket';
+import { sendTicketChanged } from '../realtime';
 
 export const ticketsRouter = Router();
 
@@ -189,4 +190,7 @@ ticketsRouter.patch('/:id', requireLogin, requireRole(['agent', 'admin']), async
 
   await ticket.save();
   res.json(ticket);
+
+  // Tell everyone who has this ticket open (real-time update)
+  sendTicketChanged(ticket.get('id') as string);
 });

@@ -1,7 +1,9 @@
+import { createServer } from 'http';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { env } from './config';
 import { sequelize } from './db';
+import { startRealtime } from './realtime';
 import { articlesRouter } from './routes/articles';
 import { authRouter } from './routes/auth';
 import { commentsRouter } from './routes/comments';
@@ -45,6 +47,10 @@ app.use('/api/articles', articlesRouter);
 // Knowledge base assistant: answers from the help articles
 app.use('/api/kb', kbRouter);
 
-app.listen(env.PORT, () => {
+// One server for both: the normal API and the WebSocket connections (real-time updates)
+const httpServer = createServer(app);
+startRealtime(httpServer);
+
+httpServer.listen(env.PORT, () => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
 });

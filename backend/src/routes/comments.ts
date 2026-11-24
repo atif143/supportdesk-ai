@@ -4,6 +4,7 @@ import { Comment } from '../models/comment';
 import { TicketSummary } from '../models/ticketSummary';
 import { User } from '../models/user';
 import { findTicketForUser } from '../utils/findTicketForUser';
+import { sendCommentAdded } from '../realtime';
 
 export const commentsRouter = Router();
 
@@ -69,4 +70,7 @@ commentsRouter.post('/:id/comments', requireLogin, async (req, res) => {
   }
 
   res.status(201).json(comment);
+
+  // Tell everyone who has this ticket open. Internal notes only go to staff.
+  sendCommentAdded(ticket.get('id') as string, finalVisibility);
 });
