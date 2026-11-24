@@ -73,8 +73,11 @@ articlesRouter.post('/', requireLogin, requireRole(['admin']), async (req, res) 
     return;
   }
 
+  const cleanTitle = title.trim();
+  const cleanBody = body.trim();
+
   // 1. Ask the AI first. If it fails, we stop before saving anything.
-  const chunks = await tryMakeChunks(title.trim(), body.trim(), userId);
+  const chunks = await tryMakeChunks(cleanTitle, cleanBody, userId);
   if (!chunks) {
     res.status(502).json({ error: INDEX_ERROR });
     return;
@@ -83,7 +86,7 @@ articlesRouter.post('/', requireLogin, requireRole(['admin']), async (req, res) 
   // 2. Save the article and its chunks in one transaction (all or nothing)
   const article = await sequelize.transaction(async (transaction) => {
     const newArticle = await Article.create(
-      { title: title.trim(), body: body.trim(), createdBy: userId },
+      { title: cleanTitle, body: cleanBody, createdBy: userId },
       { transaction },
     );
     await saveChunks(newArticle.get('id') as string, chunks, transaction);
@@ -109,8 +112,11 @@ articlesRouter.put('/:id', requireLogin, requireRole(['admin']), async (req, res
     return;
   }
 
+  const cleanTitle = title.trim();
+  const cleanBody = body.trim();
+
   // The text changed, so the old chunks are wrong. Make new ones first.
-  const chunks = await tryMakeChunks(title.trim(), body.trim(), res.locals.user.userId);
+  const chunks = await tryMakeChunks(cleanTitle, cleanBody, res.locals.user.userId);
   if (!chunks) {
     res.status(502).json({ error: INDEX_ERROR });
     return;
@@ -118,7 +124,7 @@ articlesRouter.put('/:id', requireLogin, requireRole(['admin']), async (req, res
 
   // Save the new text and replace the chunks together
   await sequelize.transaction(async (transaction) => {
-    await article.update({ title: title.trim(), body: body.trim() }, { transaction });
+    await article.update({ title: cleanTitle, body: cleanBody }, { transaction });
     await saveChunks(article.get('id') as string, chunks, transaction);
   });
 

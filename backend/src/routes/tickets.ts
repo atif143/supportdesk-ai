@@ -54,48 +54,53 @@ ticketsRouter.post('/', requireLogin, async (req, res) => {
   });
 });
 
-// GET /api/tickets  -> list tickets, 20 per page
-// Customers see only their own tickets. Agents and admins see all tickets.
-// Example: /api/tickets?page=2&status=open&search=refund&sortBy=priority&sortOrder=asc
-ticketsRouter.get('/', requireLogin, async (req, res) => {
-  const { userId, role } = res.locals.user;
-  const { status, priority, category, assigneeId, search, sortBy, sortOrder } =
-    req.query as Record<string, string>;
-
-  // 1. Filters
+// Build the "where" part of the ticket list from the query. Unknown values are ignored.
+function makeListFilter(query: Record<string, string>, userId: string, role: string) {
   const filter: Record<string, unknown> = {};
 
   if (role === 'customer') {
     filter.requesterId = userId;
   }
-  if (STATUSES.includes(status)) {
-    filter.status = status;
+  if (STATUSES.includes(query.status)) {
+    filter.status = query.status;
   }
-  if (PRIORITIES.includes(priority)) {
-    filter.priority = priority;
+  if (PRIORITIES.includes(query.priority)) {
+    filter.priority = query.priority;
   }
-  if (CATEGORIES.includes(category)) {
-    filter.category = category;
+  if (CATEGORIES.includes(query.category)) {
+    filter.category = query.category;
   }
-  if (assigneeId) {
-    filter.assigneeId = assigneeId;
+  if (query.assigneeId) {
+    filter.assigneeId = query.assigneeId;
   }
-  if (search) {
-    filter.title = { [Op.iLike]: `%${search}%` }; // title contains the text (any case)
+  if (query.search) {
+    filter.title = { [Op.iLike]: `%${query.search}%` }; // title contains the text (any case)
   }
+  return filter;
+}
+
+// GET /api/tickets  -> list tickets, 20 per page
+// Customers see only their own tickets. Agents and admins see all tickets.
+// Example: /api/tickets?page=2&status=open&search=refund&sortBy=priority&sortOrder=asc
+ticketsRouter.get('/', requireLogin, async (req, res) => {
+  const { userId, role } = res.locals.user;
+  const query = req.query as Record<string, string>;
+
+  // 1. Filters
+  const filter = makeListFilter(query, userId, role);
 
   // 2. Sorting (newest first if nothing is chosen)
   let sortField = 'createdAt';
-  if (SORT_FIELDS.includes(sortBy)) {
-    sortField = sortBy;
+  if (SORT_FIELDS.includes(query.sortBy)) {
+    sortField = query.sortBy;
   }
   let sortDirection = 'DESC';
-  if (sortOrder === 'asc') {
+  if (query.sortOrder === 'asc') {
     sortDirection = 'ASC';
   }
 
   // 3. Which page
-  const page = Number(req.query.page) || 1;
+  const page = Number(query.page) || 1;
 
   // Customers do not get the AI fields
   let hiddenFields: string[] = [];

@@ -3,7 +3,7 @@ import { sequelize } from '../db';
 import { embedTexts } from './askAi';
 
 // One chunk found by the search
-export type FoundChunk = {
+type FoundChunk = {
   articleId: string;
   title: string;
   content: string;

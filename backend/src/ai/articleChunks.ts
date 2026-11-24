@@ -17,7 +17,7 @@ type Chunk = {
 
 // Cut a long text into pieces of at most CHUNK_SIZE characters.
 // We cut between paragraphs when we can, so each piece stays readable.
-export function splitIntoChunks(text: string) {
+function splitIntoChunks(text: string) {
   // 1. Split into paragraphs. A paragraph that is still too long is cut by size.
   const paragraphs: string[] = [];
   for (const paragraph of text.split(/\n\s*\n/)) {

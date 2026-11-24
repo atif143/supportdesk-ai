@@ -7,7 +7,7 @@ export type AiInput = {
 };
 
 // What we get back from the AI
-export type AiResult = {
+type AiResult = {
   text: string;
   model: string;
   inputTokens: number;
@@ -16,15 +16,15 @@ export type AiResult = {
 
 // Embeddings: each text becomes a list of 768 numbers that stands for its meaning.
 // Texts with a similar meaning get similar numbers.
-export const EMBEDDING_SIZE = 768;
+const EMBEDDING_SIZE = 768;
 
-export type EmbedResult = {
+type EmbedResult = {
   vectors: number[][];
   model: string;
 };
 
 // One piece of a streamed answer. The token counts are the totals so far.
-export type StreamPiece = {
+type StreamPiece = {
   text: string;
   inputTokens: number;
   outputTokens: number;
@@ -150,11 +150,16 @@ async function askGemini(action: string, body: object) {
   return response.json();
 }
 
-async function geminiAi(input: AiInput): Promise<AiResult> {
-  const data = await askGemini(`${env.GEMINI_MODEL}:generateContent`, {
+// The request body for a normal answer and for a streamed answer is the same
+function geminiBody(input: AiInput) {
+  return {
     systemInstruction: { parts: [{ text: input.system }] },
     contents: [{ role: 'user', parts: [{ text: input.prompt }] }],
-  });
+  };
+}
+
+async function geminiAi(input: AiInput): Promise<AiResult> {
+  const data = await askGemini(`${env.GEMINI_MODEL}:generateContent`, geminiBody(input));
 
   // Gemini can send the answer in several pieces ("parts"), so join them all
   const parts: { text: string }[] = data.candidates[0].content.parts;
@@ -185,14 +190,7 @@ async function geminiEmbed(texts: string[]): Promise<EmbedResult> {
 // Get the answer from Gemini in small pieces, as it is written.
 // Gemini sends "Server-Sent Events": lines that start with "data: " and hold JSON.
 async function* geminiStream(input: AiInput, signal: AbortSignal) {
-  const response = await sendWithRetry(
-    `${env.GEMINI_MODEL}:streamGenerateContent?alt=sse`,
-    {
-      systemInstruction: { parts: [{ text: input.system }] },
-      contents: [{ role: 'user', parts: [{ text: input.prompt }] }],
-    },
-    signal,
-  );
+  const response = await sendWithRetry(`${env.GEMINI_MODEL}:streamGenerateContent?alt=sse`, geminiBody(input), signal);
 
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();

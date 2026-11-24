@@ -36,8 +36,24 @@ function readAnswer(text: string) {
   return { category: answer.category, priority: answer.priority, reason: answer.reason };
 }
 
+// Ask the AI for a suggestion. Try 2 times. Returns null if both tries fail.
+async function askForSuggestion(prompt: string, userId: string) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const result = await askAi(CLASSIFY_PROMPT.name, { system: CLASSIFY_PROMPT.system, prompt }, userId);
+      const answer = readAnswer(result.text);
+      if (answer) {
+        return answer;
+      }
+    } catch (error) {
+      // The AI is down or gave an error. askAi already saved it in ai_logs. Try again.
+    }
+  }
+  return null;
+}
+
 // Ask the AI for a category and priority, and save its suggestion on the ticket.
-// Try 2 times. If both fail, save "other / medium" and mark the ticket for review.
+// If the AI could not decide, save "other / medium" and mark the ticket for review.
 export async function classifyTicket(ticketId: string) {
   const ticket = await Ticket.findByPk(ticketId);
   if (!ticket) {
@@ -45,37 +61,26 @@ export async function classifyTicket(ticketId: string) {
   }
 
   const prompt = `Title: ${ticket.get('title')}\nDescription: ${ticket.get('description')}`;
+  const answer = await askForSuggestion(prompt, ticket.get('requesterId') as string);
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const result = await askAi(CLASSIFY_PROMPT.name, { system: CLASSIFY_PROMPT.system, prompt }, ticket.get('requesterId') as string);
-      const answer = readAnswer(result.text);
-
-      if (answer) {
-        ticket.set({
-          aiCategory: answer.category,
-          aiPriority: answer.priority,
-          aiReason: answer.reason,
-          needsReview: false,
-        });
-        await ticket.save();
-        sendTicketChangedForStaff(ticketId); // the AI suggestion is only for staff
-        sendTicketListChangedForStaff();
-        return;
-      }
-    } catch (error) {
-      // The AI is down or gave an error. askAi already saved it in ai_logs. Try again.
-    }
+  if (answer) {
+    ticket.set({
+      aiCategory: answer.category,
+      aiPriority: answer.priority,
+      aiReason: answer.reason,
+      needsReview: false,
+    });
+  } else {
+    ticket.set({
+      aiCategory: 'other',
+      aiPriority: 'medium',
+      aiReason: 'The AI could not decide. Please check this ticket.',
+      needsReview: true,
+    });
   }
-
-  // Both tries failed
-  ticket.set({
-    aiCategory: 'other',
-    aiPriority: 'medium',
-    aiReason: 'The AI could not decide. Please check this ticket.',
-    needsReview: true,
-  });
   await ticket.save();
+
+  // The AI suggestion is only for staff
   sendTicketChangedForStaff(ticketId);
   sendTicketListChangedForStaff();
 }

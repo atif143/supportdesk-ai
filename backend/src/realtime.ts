@@ -14,7 +14,7 @@ import { findTicketForUser } from './utils/findTicketForUser';
 // the normal API, which checks the user's role. So a customer can never get an internal note
 // or the AI fields through the socket.
 
-export const io = new Server();
+const io = new Server();
 
 type LoginData = { userId: string; role: string };
 
